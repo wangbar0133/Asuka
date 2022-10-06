@@ -1,5 +1,6 @@
 from ast_scanner.ast_scanner import Scanner
 from .vul import Vul, Vuls
+from .utils import check_solc_version
 
 INVAILD_OP = ["+", "-", "/", "*", "+=", "-=", "*="]
 
@@ -38,17 +39,6 @@ def check(scan: Scanner):
         )
     
 
-def check_solc_version(pragma: str, version: int):
-    try:
-        major, minor, patch = tuple(pragma.split("."))
-        prefix = major[:-1]
-        if prefix in ["<", "<="]:
-            return True
-        if int(minor) < version:
-            return True
-        return False
-    except:
-        return False
 
 
 

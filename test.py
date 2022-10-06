@@ -25,7 +25,7 @@ class TestVuls(unittest.TestCase):
         pass
     
     def test_check_solc_version(self):
-        from vuls.int_overflow import check_solc_version
+        from vuls.utils import check_solc_version
         self.assertEqual(True, check_solc_version("<=0.8.0", 8))
         self.assertEqual(False, check_solc_version("^0.8.0", 8))
         self.assertEqual(False, check_solc_version("0.8.0", 8))
@@ -61,6 +61,28 @@ class TestVuls(unittest.TestCase):
         from ast_scanner.ast_scanner import Scanner
         from vuls.reentrancy import check
         path = "/Users/wang/dev/Asuka/test_data/reentrancy.sol"
+        source_unit = parse_file(path, loc=True)
+        source_unit_object = objectify(source_unit, path)
+        scanner = Scanner(source_unit_object)
+        vuls = check(scanner)
+        pass
+    
+    def test_access_of_uninitialized_pointer(self):
+        from solidity_antlr4_parser.parser import parse_file, objectify
+        from ast_scanner.ast_scanner import Scanner
+        from vuls.access_of_uninitialized_pointer import check
+        path = "/Users/wang/dev/Asuka/test_data/access_of_uninitialized_pointer.sol"
+        source_unit = parse_file(path, loc=True)
+        source_unit_object = objectify(source_unit, path)
+        scanner = Scanner(source_unit_object)
+        vuls = check(scanner)
+        pass
+    
+    def test_tx_origin(self):
+        from solidity_antlr4_parser.parser import parse_file, objectify
+        from ast_scanner.ast_scanner import Scanner
+        from vuls.tx_origin import check
+        path = "/Users/wang/dev/Asuka/test_data/tx_origin.sol"
         source_unit = parse_file(path, loc=True)
         source_unit_object = objectify(source_unit, path)
         scanner = Scanner(source_unit_object)

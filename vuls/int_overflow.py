@@ -24,7 +24,7 @@ def check(scan: Scanner):
                         vul_list.append(
                             Vul(
                                 fileName=scan.fileName,
-                                locList=[op["loc"]]
+                                locList=[pragma.loc ,op["loc"]]
                             )
                         )
             break

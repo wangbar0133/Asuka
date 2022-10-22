@@ -3,7 +3,7 @@ from .vul import Vul, Vuls
 
 NAME = "reentrancy"
 
-ID = 0
+ID = 107
 
 DESCREIBE = ""
 
@@ -11,7 +11,7 @@ ADVICE = ""
 
 RISK = 0
 
-METHED = ["call", "transfer", "send", "value"]
+METHED = ["call", "value"]
 
 STATE = ["=", "+=", "-=", "*=", "/="]
 

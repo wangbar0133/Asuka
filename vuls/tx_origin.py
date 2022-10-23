@@ -3,7 +3,7 @@ from .vul import Vul, Vuls
 
 NAME = "Authorization through tx.origin"
 
-ID = 155
+ID = 115
 
 DESCREIBE = ""
 

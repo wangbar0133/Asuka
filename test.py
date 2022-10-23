@@ -88,3 +88,22 @@ class TestVuls(unittest.TestCase):
         scanner = Scanner(source_unit_object)
         vuls = check(scanner)
         pass
+    
+    def test_get_all_detector(self):
+        from vuls import all_detector
+        detectorList = [
+            getattr(all_detector, attrName) 
+            for attrName in dir(all_detector) 
+            if hasattr(getattr(all_detector, attrName), "check")
+        ]
+        pass
+    
+    def test_asuka_class(self):
+        from core.asuka import Asuka
+        root = "test_data"
+        asuka = Asuka(_root=root)
+        fileNum = asuka.file_count()
+        asuka.scan()
+        vulNum = asuka.vul_count()
+        table = asuka.vulTable
+        pass

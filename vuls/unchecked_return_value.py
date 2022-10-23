@@ -3,7 +3,7 @@ from .vul import Vul, Vuls
 
 NAME = "Unchecked Return Value"
 
-ID = 0
+ID = 104
 
 DESCREIBE = "The return value of a message call is not checked."
 

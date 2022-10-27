@@ -1,15 +1,21 @@
 from ast_scanner.ast_scanner import Scanner
 from .vul import Vul, Vuls
 
-NAME = "reentrancy"
+NAME = "Reentrancy"
 
 ID = 107
 
-DESCREIBE = ""
+DESCREIBE = """One of the major dangers of calling external contracts is that they can take over the control flow. 
+In the reentrancy attack (a.k.a. recursive call attack), a malicious contract calls back into the calling contract 
+before the first invocation of the function is finished. This may cause the different invocations of the function 
+to interact in undesirable ways."""
 
-ADVICE = ""
+ADVICE = """One of the major dangers of calling external contracts is that they can take over the control flow. 
+In the reentrancy attack (a.k.a. recursive call attack), a malicious contract calls back into the calling contract
+before the first invocation of the function is finished. This may cause the different invocations of the function 
+to interact in undesirable ways. Or use a reentrancy lock (ie. OpenZeppelin's ReentrancyGuard"""
 
-RISK = 0
+RISK = 3
 
 METHED = ["call", "value"]
 

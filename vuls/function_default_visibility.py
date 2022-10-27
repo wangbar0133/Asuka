@@ -10,7 +10,7 @@ DESCREIBE = "Function visibility type specified are public by default, this may 
 
 ADVICE = "It is recommended to make a conscious decision on which visibility type is appropriate for a function."
 
-RISK = 1
+RISK = 2
 
 def check(scan: Scanner):
     vul_list = list()

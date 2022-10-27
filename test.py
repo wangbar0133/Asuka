@@ -98,6 +98,9 @@ class TestVuls(unittest.TestCase):
         ]
         pass
     
+    
+class TestAuaka(unittest.TestCase):
+    
     def test_asuka_class(self):
         from core.asuka import Asuka
         root = "test_data"
@@ -107,3 +110,20 @@ class TestVuls(unittest.TestCase):
         vulNum = asuka.vul_count()
         table = asuka.vulTable
         pass
+    
+    
+class TestPrinter(unittest.TestCase):
+    
+    def test_print_banner(self):
+        from core.printer import Printer
+        Printer.print_banner()
+        
+        
+class TestMain(unittest.TestCase):
+    
+    def test_parse_vuls_string(self):
+        from core.__main__ import parse_vuls_string
+        text1 = "s100,101,107,s115"
+        vuls1 = parse_vuls_string(text1)
+        text2 = "asdf,199,s111,234123"
+        vuls2 = parse_vuls_string(text2)

@@ -9,7 +9,7 @@ DESCREIBE = "The return value of a message call is not checked."
 
 ADVICE = "Check return values of low-level call methods."
 
-RISK = 0
+RISK = 2
 
 METHED = ["call", "transfer", "send", "value"]
 

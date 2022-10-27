@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 from multiprocessing import Pool
 
@@ -23,7 +24,7 @@ for attrName in dir(all_detector):
         detetor = getattr(all_detector, attrName)
         allDetectorTable[detetor.ID] = detetor
         allDetectorList.append(detetor.ID)
-
+allDetectorList.sort()
 
 class Asuka(object):
     
@@ -33,7 +34,7 @@ class Asuka(object):
         self.thread = _threads
         self.allSolFiles = self._get_all_sol_files(_root)
         self.vulList = list()
-        self.vulTable = VulTable()
+        self.vulTable = VulTable(_detectors)
         
     def _is_sol_file(self, path:str) -> bool: 
         if path[-4:] != ".sol":
@@ -53,7 +54,7 @@ class Asuka(object):
         allSolFiles = list()
         for root, dirs, files in os.walk(path):
             for _file in files:
-                absFilePath = root + "/" + _file
+                absFilePath = root + _file
                 if self._is_sol_file(absFilePath):
                     allSolFiles.append(absFilePath)
         if len(allSolFiles) == 0:
@@ -71,16 +72,18 @@ class Asuka(object):
         solFilePath, detetors = param
         try:
             sourceUnit = parse_file(path=solFilePath, loc=True)
-            sourceUnitObject = objectify(sourceUnit)
+            sourceUnitObject = objectify(sourceUnit, file_name=solFilePath)
         except Exception as e:
             logging.info("Parse file failed: {}".format(solFilePath))
             logging.exception(e)
+            raise RuntimeError("Parse file failed: {}".format(solFilePath))
             
         try:
             scanner = Scanner(sourceUnitObject)
         except Exception as e:
             logging.info("Scan ast failed: {}".format(solFilePath))
             logging.exception(e)
+            raise RuntimeError("Scan ast failed: {}".format(solFilePath))
             
         vulList = list()
         for vulId in detetors:
@@ -91,6 +94,7 @@ class Asuka(object):
                 logging.info("Detector failed: {}".format(detector.NAME))
                 logging.info("Sol file: {}".format(solFilePath))
                 logging.exception(e)
+                raise RuntimeError("Detector failed: {}".format(detector.NAME))
         return vulList        
         
 
@@ -106,6 +110,5 @@ class Asuka(object):
         for vulList in vulLists:
             for vul in vulList:
                 self.vulTable += vul
-            
 
             

@@ -10,7 +10,7 @@ ID = 101
 
 DESCREIBE = "Integer Overflow and Underflow"
 
-ADVICE = "Using safemath lib"
+ADVICE = "It is recommended to use vetted safe math libraries for arithmetic operations consistently throughout the smart contract system."
 
 RISK = 3
 

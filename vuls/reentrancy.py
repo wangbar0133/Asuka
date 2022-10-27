@@ -64,7 +64,7 @@ def check(scan: Scanner):
             # check function storage declartions
             functionStorageDeclarations = dict()
             for name, declartion in function.functionObject.declarations.items():
-                if not hasattr(declartion, "storageLocation"):
+                if not declartion.__hasattr__("storageLocation"):
                     continue
                 if declartion.storageLocation == "storage":
                     functionStorageDeclarations[name] = declartion

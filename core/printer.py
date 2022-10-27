@@ -89,7 +89,7 @@ class Printer(object):
     def _code_snippet(vuls:Vuls):
         for vul in vuls.vul_list:
             fileName = vul.fileName
-            Printer.print_blue("\n{}".format(vul.fileName))
+            Printer.print_blue("\n{}\n".format(vul.fileName))
             for loc in vul.locList:
                 with open(vul.fileName, "r", encoding="utf-8") as f:
                     codeLines = [line.split("\n")[0] for line in f.readlines()]
@@ -107,9 +107,9 @@ class Printer(object):
                 for lineIndex, codeLine in enumerate(codeLines[top:bottom+1]):
                     line = top + lineIndex
                     if line == top or line == bottom:
-                        print("{}|".format(str(line+1)).rjust(5) + codeLine)
+                        print("{}|".format(str(line+1)).rjust(7) + codeLine)
                     else:
-                        Printer.print_yellow(">{}|".format(str(line+1)).rjust(5) + codeLine)
+                        Printer.print_yellow(">{}|".format(str(line+1)).rjust(7) + codeLine)
                 print("\n")
                         
     @staticmethod

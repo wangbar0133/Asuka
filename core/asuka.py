@@ -54,7 +54,7 @@ class Asuka(object):
         allSolFiles = list()
         for root, dirs, files in os.walk(path):
             for _file in files:
-                absFilePath = root + _file
+                absFilePath = os.path.join(root, _file)
                 if self._is_sol_file(absFilePath):
                     allSolFiles.append(absFilePath)
         if len(allSolFiles) == 0:

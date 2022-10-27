@@ -25,6 +25,8 @@ def check(scan: Scanner):
                 continue
             if statement.expression.type != "FunctionCall":
                 continue
+            if not statement.expression.expression:
+                continue
             if statement.expression.expression.type != "MemberAccess":
                 continue
             if statement.expression.expression.memberName in METHED:
@@ -52,9 +54,13 @@ def check(scan: Scanner):
             elif statement.type == "ExpressionStatement" and returnValueMap:
                 if statement.expression.type != "FunctionCall":
                     continue
+                if statement.expression.expression.type == "MemberAccess":
+                    continue
                 if statement.expression.expression.name != "require":
                     continue
                 if not statement.expression.arguments:
+                    continue
+                if not statement.expression.arguments[0].__hasattr__("name"):
                     continue
                 name = statement.expression.arguments[0].name
                 if name in returnValueMap.keys():

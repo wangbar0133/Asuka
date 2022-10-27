@@ -4,7 +4,7 @@ from .utils import check_solc_version
 
 INVAILD_OP = ["+", "-", "/", "*", "+=", "-=", "*="]
 
-NAME = "int overflow"
+NAME = "Int Overflow"
 
 ID = 101
 

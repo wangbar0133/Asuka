@@ -24,7 +24,7 @@ class Printer(object):
     @staticmethod
     def print_banner():
         print(Color.RED + BANNER + Color.END)
-    
+        
     @staticmethod
     def print_detectors(allDetectorList:list, allDetectorTable:VulTable):
         detectorTable = prettytable.PrettyTable()

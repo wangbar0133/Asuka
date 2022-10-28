@@ -33,6 +33,31 @@ Detect:
                         Number of threads.
 ```
 
+Scan all solidity files in the current folder:
+
+```shell
+asuka .
+```
+
+Scan single solidity file:
+
+```shell
+asuka test.sol
+```
+
+Specify or exclude detectors, using -i(inclued) or -e(exclude) and the SWC id Should be separated by a comma. SWC id can be start with s or just a number.
+
+```shell
+asuka . -i s100,101
+
+```
+
+You can specify threads by using -t.
+
+```shell
+asuka . -t 4
+```
+
 ## Detectors
 
 All detectors are base on SWC.

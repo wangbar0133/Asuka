@@ -4,15 +4,12 @@ from .printer import Printer
 from .asuka import Asuka
 from vuls import all_detector
 
-parser = argparse.ArgumentParser()
-groupCheckList = parser.add_argument_group("Check List")
-groupDetect = parser.add_argument_group("Detect")
-
-groupDetect.add_argument("path", action="store_false", help="Folders or solidity files.")
-groupCheckList.add_argument("-d", "--detector", action="store_true", help="Show all detectors.")
-groupDetect.add_argument("-i", "--include", help="Specify the detector")
-groupDetect.add_argument("-e", "--exclude", help="Exclusion detector")
-groupDetect.add_argument("-t", "--thread", help="Number of threads.")
+class ListAllDetectors(argparse.Action):
+    
+    def __call__(self, parser, *args, **kwargs):
+        Printer.print_blue("Find {} detectors:".format(len(allDetectorList)))
+        Printer.print_detectors(allDetectorList, allDetectorTable)
+        parser.exit()
 
 # load all detector
 allDetectorTable = dict()
@@ -24,7 +21,27 @@ for attrName in dir(all_detector):
         allDetectorList.append(detetor.ID)
 allDetectorList.sort()
 
-def parse_vuls_string(s) -> list():
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("path", help="Folders or solidity files.")
+parser.add_argument("--version",version="0.1.0", action="version", help="Show current version")
+
+groupCheckList = parser.add_argument_group("Check List")
+groupDetect = parser.add_argument_group("Detect")
+
+groupCheckList.add_argument(
+    "-d", "--detector", 
+    action=ListAllDetectors,
+    nargs=0,
+    help="Show all detectors", 
+    default=False
+)
+groupDetect.add_argument("-i", "--include", help="Specify the detector")
+groupDetect.add_argument("-e", "--exclude", help="Exclusion detector")
+groupDetect.add_argument("-t", "--thread", help="Number of threads")
+        
+def parse_vuls_string(s) -> list:
     vuls = list()
     unValidVuls = list()
     for item in s.split(","):
@@ -32,7 +49,7 @@ def parse_vuls_string(s) -> list():
             item = item[1:]
         if item.isdigit():
             if int(item) in allDetectorList:
-                vuls.append(item)
+                vuls.append(int(item))
                 continue
         unValidVuls.append(item)
     if unValidVuls:
@@ -43,25 +60,20 @@ def parse_vuls_string(s) -> list():
     return vuls
 
 def main():
-    Printer.print_banner()
     args = parser.parse_args()
-    
-    if args.detector:
-        Printer.print_blue("Find {} detectors:".format(len(allDetectorList)))
-        Printer.print_detectors(allDetectorList, allDetectorTable)
-        exit(0) 
-    
+    Printer.print_banner()
+        
     if args.path:
         root = args.path
         if args.include:
-            detectors = parse_vuls_string(arg.include).sort()
+            detectors = sorted(parse_vuls_string(args.include))
         elif args.exclude:
-            detectors = [item for item in arg.exclude if item not in allDetectorList].sort()
+            detectors = sorted(list(set(allDetectorList) - set(parse_vuls_string(args.exclude))))
         else:
             detectors = allDetectorList
         
         if args.thread:
-            thread = arg.thread
+            thread = int(args.thread)
         else:
             thread = 4
         

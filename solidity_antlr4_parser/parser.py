@@ -10,7 +10,6 @@
 
 from antlr4 import *
 
-from parse import TRUST_CONTRACTS
 from .SolidityLexer import SolidityLexer
 from .SolidityParser import SolidityParser
 from .SolidityVisitor import SolidityVisitor

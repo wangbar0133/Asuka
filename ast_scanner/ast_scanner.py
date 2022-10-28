@@ -1,5 +1,4 @@
 from ast import operator
-from parse import get_expression
 
 
 class Scanner(object):

@@ -15,7 +15,7 @@ python setup.py install
 ```shell
 asuka --help
 
-usage: main.py [-h] [-d] [-i INCLUDE] [-e EXCLUDE] [-t THREAD] path
+usage: asuka [-h] [-d] [-i INCLUDE] [-e EXCLUDE] [-t THREAD] path
 
 optional arguments:
   -h, --help            show this help message and exit

@@ -8,7 +8,7 @@ parser = argparse.ArgumentParser()
 groupCheckList = parser.add_argument_group("Check List")
 groupDetect = parser.add_argument_group("Detect")
 
-groupDetect.add_argument("path", action="store", help="Folders or solidity files.")
+groupDetect.add_argument("path", action="store_false", help="Folders or solidity files.")
 groupCheckList.add_argument("-d", "--detector", action="store_true", help="Show all detectors.")
 groupDetect.add_argument("-i", "--include", help="Specify the detector")
 groupDetect.add_argument("-e", "--exclude", help="Exclusion detector")

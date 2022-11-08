@@ -4,4 +4,5 @@ from . import int_overflow
 from . import reentrancy
 from . import tx_origin
 from . import unchecked_return_value
+from . import delegatecall
 

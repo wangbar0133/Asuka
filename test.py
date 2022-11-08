@@ -17,7 +17,7 @@ class TestVuls(unittest.TestCase):
         from solidity_antlr4_parser.parser import parse_file, objectify
         from ast_scanner.ast_scanner import Scanner
         from vuls.int_overflow import check
-        path = "/Users/wang/dev/Asuka/test.sol"
+        path = "/Users/wang/dev/Asuka/test_data/test.sol"
         source_unit = parse_file(path, loc=True)
         source_unit_object = objectify(source_unit, path)
         scanner = Scanner(source_unit_object)
@@ -38,7 +38,7 @@ class TestVuls(unittest.TestCase):
         from solidity_antlr4_parser.parser import parse_file, objectify
         from ast_scanner.ast_scanner import Scanner
         from vuls.function_default_visibility import check
-        path = "/Users/wang/dev/Asuka/test1.sol"
+        path = "/Users/wang/dev/Asuka/test_data/function_default_visibility.sol"
         source_unit = parse_file(path, loc=True)
         source_unit_object = objectify(source_unit, path)
         scanner = Scanner(source_unit_object)
@@ -49,7 +49,7 @@ class TestVuls(unittest.TestCase):
         from solidity_antlr4_parser.parser import parse_file, objectify
         from ast_scanner.ast_scanner import Scanner
         from vuls.unchecked_return_value import check
-        path = "/Users/wang/dev/Asuka/test1.sol"
+        path = "/Users/wang/dev/Asuka/test_data/unchecked_return_value.sol"
         source_unit = parse_file(path, loc=True)
         source_unit_object = objectify(source_unit, path)
         scanner = Scanner(source_unit_object)
@@ -98,6 +98,17 @@ class TestVuls(unittest.TestCase):
         ]
         pass
     
+    def test_delegatecall(self):
+        from solidity_antlr4_parser.parser import parse_file, objectify
+        from ast_scanner.ast_scanner import Scanner
+        from vuls.delegatecall import check
+        path = "/Users/wang/dev/Asuka/test_data/delegatecall.sol"
+        source_unit = parse_file(path, loc=True)
+        source_unit_object = objectify(source_unit, path)
+        scanner = Scanner(source_unit_object)
+        vuls = check(scanner)
+        pass
+    
     
 class TestAuaka(unittest.TestCase):
     
@@ -125,5 +136,5 @@ class TestMain(unittest.TestCase):
         from core.__main__ import parse_vuls_string
         text1 = "s100,101,107,s115"
         vuls1 = parse_vuls_string(text1)
-        text2 = "asdf,199,s111,234123"
-        vuls2 = parse_vuls_string(text2)
+        # text2 = "asdf,199,s111,234123"
+        # vuls2 = parse_vuls_string(text2)

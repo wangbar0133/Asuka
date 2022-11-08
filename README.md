@@ -69,6 +69,7 @@ All detectors are base on SWC.
 | SWC-104     | Unchecked Return Value          |
 | SWC-107     | Reentrancy                      |
 | SWC-109     | Access of Uninitialized Pointer |
+| SWC-112     | Delegatecall to Untrusted Callee|
 | SWC-115     | Authorization through tx.origin |
 
 More Smart Contract Weakness: <https://swcregistry.io/>

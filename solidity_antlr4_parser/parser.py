@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# part of https://github.com/ConsenSys/python-solidity-parser
+# mod by https://github.com/ConsenSys/python-solidity-parser
 # derived from https://github.com/federicobond/solidity-parser-antlr/
 #
-
-# solidity_parser.
-
 
 from antlr4 import *
 
@@ -1836,8 +1833,3 @@ def parse(text, start="sourceUnit", loc=False, strict=False, path=None):
     Node.ENABLE_LOC = loc
 
     return ast.visit(getattr(parser, start)())
-
-
-
-if __name__ == "__main__":
-    pass

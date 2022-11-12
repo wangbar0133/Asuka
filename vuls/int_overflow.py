@@ -15,6 +15,14 @@ ADVICE = "It is recommended to use vetted safe math libraries for arithmetic ope
 RISK = 3
 
 def check(scan: Scanner):
+    """
+        Detector of int overflow vul.
+        1. Get solc version by scan.sourceUnitObject.pragmas.
+        2. Check the version.
+        3. Get all operators by scan.operators
+        4. Check the operators is invalid.
+        5. Collect all detected vul with file path and code locations.
+    """
     vul_list = list()
     for pragma in scan.sourceUnitObject.pragmas:
         if check_solc_version(pragma.value, 8):

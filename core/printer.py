@@ -20,6 +20,9 @@ import prettytable
 from vuls.vul import Risk, VulTable, Vul, Vuls 
 
 class Printer(object):
+    """
+        A class to print info on cli.
+    """
     
     @staticmethod
     def print_banner():
@@ -149,8 +152,3 @@ class Color:
     GREEN = "\033[92m"
     BLUE = "\033[94m"
     END = "\033[0m"
-    
-    
-if __name__ == "__main__":
-    Printer.print_banner()
-    Printer.print_file_num(10)

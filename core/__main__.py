@@ -11,7 +11,8 @@ class ListAllDetectors(argparse.Action):
         Printer.print_detectors(allDetectorList, allDetectorTable)
         parser.exit()
 
-# load all detector
+# Load all detectors
+# All detectors are in the vuls folder
 allDetectorTable = dict()
 allDetectorList = list()
 for attrName in dir(all_detector):
@@ -40,8 +41,13 @@ groupCheckList.add_argument(
 groupDetect.add_argument("-i", "--include", help="Specify the detector")
 groupDetect.add_argument("-e", "--exclude", help="Exclusion detector")
 groupDetect.add_argument("-t", "--thread", help="Number of threads")
-        
+ 
 def parse_vuls_string(s) -> list:
+    """
+        This function can parse the input vuls string.
+        Like 100 & s100 & 101,102 & s101,102,s103.
+        Return a int list of all vuls.
+    """
     vuls = list()
     unValidVuls = list()
     for item in s.split(","):
@@ -77,12 +83,14 @@ def main():
         else:
             thread = 4
         
+        # Create a Asuka object
         asuka = Asuka(_root=root, _detectors=detectors, _threads=thread)
         Printer.print_files(asuka.allSolFiles)
         Printer.print_blue("Check list:")
         Printer.print_detectors(detectors, allDetectorTable)
         Printer.print_yellow("Antlr4 warn:")
         
+        # Start scan task
         asuka.scan()
         Printer.print_green("\n\n--------------------------Finsh--------------------------\n")
         Printer.print_summary(asuka.vulTable)

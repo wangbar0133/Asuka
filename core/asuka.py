@@ -27,8 +27,19 @@ for attrName in dir(all_detector):
 allDetectorList.sort()
 
 class Asuka(object):
+    """
+        This is Asuka class which is core of detect vuls.
+    """
     
     def __init__(self, _root:str, _detectors=allDetectorList, _threads=4):
+        """ init Asuka Object
+
+        Args:
+            _root (str): path of all solidity files.
+            _detectors (_type_, optional): the detector you want to load. 
+                Defaults to allDetectorList.
+            _threads (int, optional): threads of scanning files. Defaults to 4.
+        """
         self.root = _root
         self.detectors = _detectors
         self.thread = _threads
@@ -36,15 +47,36 @@ class Asuka(object):
         self.vulList = list()
         self.vulTable = VulTable(_detectors)
         
-    def _is_sol_file(self, path:str) -> bool: 
+    def _is_sol_file(self, path:str) -> bool:
+        """check the file of path is solidity file.
+
+        Args:
+            path (str): path of a single solidity file.
+
+        Returns:
+            bool: result.
+        """
+        # check the path has suffix ".sol"
         if path[-4:] != ".sol":
             return False
+        # check the file is empty
         with open(path, "r", encoding="utf-8") as f:
             if len(f.readlines()) == 0:
                 return False
         return True
     
     def _get_all_sol_files(self, path:str) -> list:
+        """get all solidty file from a path
+
+        Args:
+            path (str): It can be a folder of a single solidity file.
+
+        Raises:
+            ValueError: Can't found any solidity files.
+
+        Returns:
+            list: A list of all solidity files.
+        """
         if path[-4:] == ".sol":
             if self._is_sol_file(path):
                 return [path]
@@ -69,8 +101,21 @@ class Asuka(object):
         return len(self.vulList)    
         
     def scan_file(self, param:tuple[str, list]) -> list:
+        """Scan a single solidity file.
+
+        Args:
+            param (tuple[str, list]): solidity file path 
+                and list of vuls want to detect.
+                
+        Returns:
+            list: vul list
+        """
         solFilePath, detetors = param
         try:
+            """
+                parse solidity source code to an AST object 
+                by using solidity_antlr4_parser module.
+            """
             sourceUnit = parse_file(path=solFilePath, loc=True)
             sourceUnitObject = objectify(sourceUnit, file_name=solFilePath)
         except Exception as e:
@@ -79,6 +124,10 @@ class Asuka(object):
             raise RuntimeError("Parse file failed: {}".format(solFilePath))
             
         try:
+            """
+                Scanning solidity AST object to get scanner object
+                by using ast_scanner moudule.
+            """
             scanner = Scanner(sourceUnitObject)
         except Exception as e:
             logging.info("Scan ast failed: {}".format(solFilePath))
@@ -87,6 +136,10 @@ class Asuka(object):
             
         vulList = list()
         for vulId in detetors:
+            """
+                Get all detectors by allDetectorTable.
+                Using detectors to detect vuls.
+            """
             detector = allDetectorTable[vulId]
             try:
                 vulList.append(detector.check(scanner))
@@ -99,6 +152,9 @@ class Asuka(object):
         
 
     def scan(self):
+        """
+            Asuka class main methed to detect vuls by multi threaded.
+        """
         pool = Pool(processes=self.thread)
         vulLists = pool.map(
             self.scan_file,

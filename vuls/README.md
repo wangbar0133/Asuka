@@ -1,5 +1,7 @@
 # How make a new detector
 
+Templates:
+
 ```python
 from ast_scanner.ast_scanner import Scanner
 from .vul import Vul, Vuls
@@ -27,6 +29,9 @@ def check(scan: Scanner):
         )
     
 ```
+
+You can operate the Scanner object to find vuls.
+Check the int_overflow.py to get more info.
 
 Find a new smart contract weakness in <https://swcregistry.io/>
 Fill in the NAME, ID, DESCREIBE by <https://swcregistry.io/> or yourself.

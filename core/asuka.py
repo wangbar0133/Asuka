@@ -7,6 +7,8 @@ from vuls import all_detector
 from vuls.vul import VulTable
 from solidity_antlr4_parser.parser import parse_file, objectify
 from ast_scanner.ast_scanner import Scanner
+from scraper.scraper import Scraper
+from .utils import check_address
 
 logging.basicConfig(
     filename="debug.log", 
@@ -31,7 +33,7 @@ class Asuka(object):
         This is Asuka class which is core of detect vuls.
     """
     
-    def __init__(self, _root:str, _detectors=allDetectorList, _threads=4):
+    def __init__(self, _root:str, _detectors=allDetectorList, _threads=4, _chainType=None, _apiKey=None):
         """ init Asuka Object
 
         Args:
@@ -39,10 +41,13 @@ class Asuka(object):
             _detectors (_type_, optional): the detector you want to load. 
                 Defaults to allDetectorList.
             _threads (int, optional): threads of scanning files. Defaults to 4.
+            _chainType (str): like ETH, BSC etc.
         """
         self.root = _root
         self.detectors = _detectors
         self.thread = _threads
+        self.chainType = _chainType
+        self.apiKey = _apiKey
         self.allSolFiles = self._get_all_sol_files(_root)
         self.vulList = list()
         self.vulTable = VulTable(_detectors)
@@ -77,6 +82,12 @@ class Asuka(object):
         Returns:
             list: A list of all solidity files.
         """
+        if check_address(address=path) \
+            and self.chainType \
+                and self.apiKey:
+            scraper = Scraper(chainType=self.chainType, apiKey=self.apiKey)
+            path = scraper.get_source_code(address=path)
+        
         if path[-4:] == ".sol":
             if self._is_sol_file(path):
                 return [path]

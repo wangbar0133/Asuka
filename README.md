@@ -15,22 +15,29 @@ python setup.py install
 ```shell
 asuka --help
 
-usage: asuka [-h] [-d] [-i INCLUDE] [-e EXCLUDE] [-t THREAD] path
+usage: asuka [-h] [--version] [-k APIKEY] [-c CHAIN] [-d] [-i INCLUDE] [-e EXCLUDE] [-t THREAD] path
+
+positional arguments:
+  path                  Folders or solidity files or address.
 
 optional arguments:
   -h, --help            show this help message and exit
+  --version             Show current version
+  -k APIKEY, --apikey APIKEY
+                        Api key
+  -c CHAIN, --chain CHAIN
+                        chain type
 
 Check List:
-  -d, --detector        Show all detectors.
+  -d, --detector        Show all detectors
 
 Detect:
-  path                  Folders or solidity files.
   -i INCLUDE, --include INCLUDE
                         Specify the detector
   -e EXCLUDE, --exclude EXCLUDE
                         Exclusion detector
   -t THREAD, --thread THREAD
-                        Number of threads.
+                        Number of threads
 ```
 
 Scan all solidity files in the current folder:
@@ -38,6 +45,14 @@ Scan all solidity files in the current folder:
 ```shell
 asuka .
 ```
+
+Scan contract by address chain type and api key:
+
+```shell
+asuka 0xdac17f958d2ee523a2206206994597c13d831ec7 -t eth -k xxxxxxxxxxxxxxxxxx
+```
+
+Support Ethereum now.
 
 Scan single solidity file:
 

@@ -138,3 +138,12 @@ class TestMain(unittest.TestCase):
         vuls1 = parse_vuls_string(text1)
         # text2 = "asdf,199,s111,234123"
         # vuls2 = parse_vuls_string(text2)
+    
+    
+class TestScraper(unittest.TestCase):
+    
+    def test_get_source_code(self):
+        from scraper.scraper import Scraper
+        scraper = Scraper("ETH", "XPCTIDDSTQA43NVT2VFZSI8YY8BVX5VKMM")
+        sourceCode = scraper.get_source_code(address="0xdac17f958d2ee523a2206206994597c13d831ec7")
+        pass

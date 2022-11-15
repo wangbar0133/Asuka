@@ -2,6 +2,7 @@ import argparse
 
 from .printer import Printer
 from .asuka import Asuka
+from .utils import check_address
 from vuls import all_detector
 
 class ListAllDetectors(argparse.Action):
@@ -25,8 +26,10 @@ allDetectorList.sort()
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("path", help="Folders or solidity files.")
+parser.add_argument("path", help="Folders or solidity files or address.")
 parser.add_argument("--version",version="0.1.0", action="version", help="Show current version")
+parser.add_argument("-k", "--apikey", help="Api key")
+parser.add_argument("-c", "--chain", help="chain type")
 
 groupCheckList = parser.add_argument_group("Check List")
 groupDetect = parser.add_argument_group("Detect")
@@ -83,8 +86,21 @@ def main():
         else:
             thread = 4
         
+        if check_address(root):
+            if not args.apikey:
+                Printer.print_red("No API Keys!")
+                exit(1)
+            if not args.chain:
+                Printer.print_red("No Chain Type!")
+                exit(1)
+            apiKey = args.apikey
+            chainType = args.chain.upper()
+        else:
+            apiKey = None
+            chainType = None
+        
         # Create a Asuka object
-        asuka = Asuka(_root=root, _detectors=detectors, _threads=thread)
+        asuka = Asuka(_root=root, _detectors=detectors, _threads=thread, _chainType=chainType,_apiKey=apiKey)
         Printer.print_files(asuka.allSolFiles)
         Printer.print_blue("Check list:")
         Printer.print_detectors(detectors, allDetectorTable)

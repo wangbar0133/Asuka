@@ -27,7 +27,7 @@ allDetectorList.sort()
 parser = argparse.ArgumentParser()
 
 parser.add_argument("path", help="Folders or solidity files or address.")
-parser.add_argument("--version",version="0.1.0", action="version", help="Show current version")
+parser.add_argument("--version",version="0.2.0", action="version", help="Show current version")
 parser.add_argument("-k", "--apikey", help="Api key")
 parser.add_argument("-c", "--chain", help="chain type")
 

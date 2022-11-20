@@ -8,7 +8,7 @@ BANNER = r"""
    \ \_\ \_\/\____/\ \____/ \ \_\ \_\ \__/.\_\
     \/_/\/_/\/___/  \/___/   \/_/\/_/\/__/\/_/
                                               
-    version 0.1.0                                           
+    version 0.2.0                                           
                             
     Extremely Fast Contract Defect Detectors
     https://github.com/wangbar0133/Asuka

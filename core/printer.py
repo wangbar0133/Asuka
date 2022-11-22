@@ -17,7 +17,8 @@ BANNER = r"""
 """
 import prettytable
 
-from vuls.vul import Risk, VulTable, Vul, Vuls 
+from vuls.vul import Risk, VulTable, Vul, Vuls
+from .utils import merge_loc_list
 
 class Printer(object):
     """
@@ -93,7 +94,7 @@ class Printer(object):
         for vul in vuls.vul_list:
             fileName = vul.fileName
             Printer.print_blue("\n{}\n".format(vul.fileName))
-            for loc in vul.locList:
+            for loc in merge_loc_list(vul.locList):
                 with open(vul.fileName, "r", encoding="utf-8") as f:
                     codeLines = [line.split("\n")[0] for line in f.readlines()]
                 if fileName != vul.fileName: Printer.print_blue("\n{}".format(vul.fileName))
@@ -114,7 +115,7 @@ class Printer(object):
                     else:
                         Printer.print_yellow(">{}|".format(str(line+1)).rjust(7) + codeLine)
                 print("\n")
-                        
+
     @staticmethod
     def print_file_num(num:int):
         print("Contract files: " + Color.GREEN + str(num) + Color.END)

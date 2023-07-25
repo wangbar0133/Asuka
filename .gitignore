@@ -131,3 +131,5 @@ dmypy.json
 .vscode
 
 .contract_files
+
+.DS_Store

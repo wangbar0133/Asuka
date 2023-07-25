@@ -5,4 +5,4 @@ from . import reentrancy
 from . import tx_origin
 from . import unchecked_return_value
 from . import delegatecall
-
+from . import arbitrary_call

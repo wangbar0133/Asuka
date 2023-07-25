@@ -109,6 +109,17 @@ class TestVuls(unittest.TestCase):
         vuls = check(scanner)
         pass
     
+    def test_arbitrary_call(self):
+        from solidity_antlr4_parser.parser import parse_file, objectify
+        from ast_scanner.ast_scanner import Scanner
+        from vuls.arbitrary_call import check
+        path = "/Users/wang/dev/Asuka/test_data/arbitrary_call.sol"
+        source_unit = parse_file(path, loc=True)
+        source_unit_object = objectify(source_unit, path)
+        scanner = Scanner(source_unit_object)
+        vuls = check(scanner)
+        
+    
     
 class TestAuaka(unittest.TestCase):
     

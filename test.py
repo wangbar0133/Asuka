@@ -17,7 +17,7 @@ class TestVuls(unittest.TestCase):
         from solidity_antlr4_parser.parser import parse_file, objectify
         from ast_scanner.ast_scanner import Scanner
         from vuls.int_overflow import check
-        path = "/Users/wang/dev/Asuka/test_data/test.sol"
+        path = "test_data/test.sol"
         source_unit = parse_file(path, loc=True)
         source_unit_object = objectify(source_unit, path)
         scanner = Scanner(source_unit_object)
@@ -38,7 +38,7 @@ class TestVuls(unittest.TestCase):
         from solidity_antlr4_parser.parser import parse_file, objectify
         from ast_scanner.ast_scanner import Scanner
         from vuls.function_default_visibility import check
-        path = "/Users/wang/dev/Asuka/test_data/function_default_visibility.sol"
+        path = "test_data/function_default_visibility.sol"
         source_unit = parse_file(path, loc=True)
         source_unit_object = objectify(source_unit, path)
         scanner = Scanner(source_unit_object)
@@ -49,7 +49,7 @@ class TestVuls(unittest.TestCase):
         from solidity_antlr4_parser.parser import parse_file, objectify
         from ast_scanner.ast_scanner import Scanner
         from vuls.unchecked_return_value import check
-        path = "/Users/wang/dev/Asuka/test_data/unchecked_return_value.sol"
+        path = "test_data/unchecked_return_value.sol"
         source_unit = parse_file(path, loc=True)
         source_unit_object = objectify(source_unit, path)
         scanner = Scanner(source_unit_object)
@@ -60,7 +60,7 @@ class TestVuls(unittest.TestCase):
         from solidity_antlr4_parser.parser import parse_file, objectify
         from ast_scanner.ast_scanner import Scanner
         from vuls.reentrancy import check
-        path = "/Users/wang/dev/Asuka/test_data/reentrancy.sol"
+        path = "test_data/reentrancy.sol"
         source_unit = parse_file(path, loc=True)
         source_unit_object = objectify(source_unit, path)
         scanner = Scanner(source_unit_object)
@@ -71,7 +71,7 @@ class TestVuls(unittest.TestCase):
         from solidity_antlr4_parser.parser import parse_file, objectify
         from ast_scanner.ast_scanner import Scanner
         from vuls.access_of_uninitialized_pointer import check
-        path = "/Users/wang/dev/Asuka/test_data/access_of_uninitialized_pointer.sol"
+        path = "test_data/access_of_uninitialized_pointer.sol"
         source_unit = parse_file(path, loc=True)
         source_unit_object = objectify(source_unit, path)
         scanner = Scanner(source_unit_object)
@@ -82,7 +82,7 @@ class TestVuls(unittest.TestCase):
         from solidity_antlr4_parser.parser import parse_file, objectify
         from ast_scanner.ast_scanner import Scanner
         from vuls.tx_origin import check
-        path = "/Users/wang/dev/Asuka/test_data/tx_origin.sol"
+        path = "test_data/tx_origin.sol"
         source_unit = parse_file(path, loc=True)
         source_unit_object = objectify(source_unit, path)
         scanner = Scanner(source_unit_object)
@@ -102,7 +102,7 @@ class TestVuls(unittest.TestCase):
         from solidity_antlr4_parser.parser import parse_file, objectify
         from ast_scanner.ast_scanner import Scanner
         from vuls.delegatecall import check
-        path = "/Users/wang/dev/Asuka/test_data/delegatecall.sol"
+        path = "test_data/delegatecall.sol"
         source_unit = parse_file(path, loc=True)
         source_unit_object = objectify(source_unit, path)
         scanner = Scanner(source_unit_object)
@@ -113,7 +113,7 @@ class TestVuls(unittest.TestCase):
         from solidity_antlr4_parser.parser import parse_file, objectify
         from ast_scanner.ast_scanner import Scanner
         from vuls.arbitrary_call import check
-        path = "/Users/wang/dev/Asuka/test_data/arbitrary_call.sol"
+        path = "test_data/arbitrary_call.sol"
         source_unit = parse_file(path, loc=True)
         source_unit_object = objectify(source_unit, path)
         scanner = Scanner(source_unit_object)

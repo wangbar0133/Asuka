@@ -17,7 +17,7 @@ to interact in undesirable ways. Or use a reentrancy lock (ie. OpenZeppelin's Re
 
 RISK = 3
 
-METHED = ["call", "value"]
+METHED = ["call", "value", "sendValue"]
 
 STATE = ["=", "+=", "-=", "*=", "/="]
 

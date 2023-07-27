@@ -42,7 +42,10 @@ def check(scan: Scanner):
                     vul_list.append(
                             Vul(
                                 fileName=scan.fileName,
-                                locList=[function.functionObject.node.loc]
+                                locList=[
+                                    function.functionObject.node.loc,
+                                    expression.loc
+                                ]
                             )
                         )
             

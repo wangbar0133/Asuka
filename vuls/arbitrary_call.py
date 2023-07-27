@@ -1,4 +1,4 @@
-from ast_scanner.ast_scanner import Scanner
+from ast_scanner.ast_scanner import Scanner, Tools
 from .vul import Vul, Vuls
 
 NAME = "Arbitrary calls"
@@ -14,8 +14,10 @@ RISK = 3
 def check(scan: Scanner):
     vul_list = list()
     for function in scan.functions:
-        # the function should be call by external
+        # the function should be call by external and none admin
         if not function.functionObject.node.visibility in ["default", "public", "external"]:
+            continue
+        if Tools.check_modifier(function.functionObject, ["onlyOwner", "onlyGov", "onlyAdmin"]):
             continue
         # get all member access function call
         for expression in function.functionCalls:

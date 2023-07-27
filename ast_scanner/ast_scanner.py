@@ -82,6 +82,7 @@ class Function(object):
     
     def visit_statement(self, statement):
         if statement:
+            self.statements.append(statement)
             if statement.type == "IfStatement":
                 self.visit_statement(statement.condition)
                 self.visit_statement(statement.TrueBody)
@@ -115,7 +116,7 @@ class Function(object):
                 self.visit_statement(statement.block)
 
             else:
-                self.statements.append(statement)
+                pass
                
     def get_expressions(self):
         if self.statements:
@@ -303,3 +304,24 @@ class Function(object):
             if statement.loc["start"]["line"] >= nodeStartLine:
                 below_statements.append(statement)
         return below_statements 
+
+
+class Tools(object):
+    
+    @staticmethod
+    def scope_check(ctx0, ctx1) -> bool:
+        loc0 = ctx0.loc
+        loc1 = ctx1.loc
+        if loc0["start"]["line"] == loc1["start"]["line"] \
+            and loc0["end"]["line"] == loc1["end"]["line"] \
+                and loc0["start"]["line"] == loc0["end"]["line"]:
+                    if loc0["start"].column <= loc1["start"].column \
+                        and loc0["start"].column <= loc1["start"].column:
+                            return True
+                    else:
+                        return False
+        elif loc0["start"]["line"] < loc1["start"]["line"] \
+            and loc0["end"]["line"] > loc1["end"]["line"]:
+                return True
+        else:
+            return False

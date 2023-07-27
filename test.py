@@ -119,6 +119,16 @@ class TestVuls(unittest.TestCase):
         scanner = Scanner(source_unit_object)
         vuls = check(scanner)
         
+    def test_msgvalue_in_loopl(self):
+        from solidity_antlr4_parser.parser import parse_file, objectify
+        from ast_scanner.ast_scanner import Scanner
+        from vuls.msgvalue_in_loop import check
+        path = "test_data/msgvalue_in_loop.sol"
+        source_unit = parse_file(path, loc=True)
+        source_unit_object = objectify(source_unit, path)
+        scanner = Scanner(source_unit_object)
+        vuls = check(scanner)
+        
     
     
 class TestAuaka(unittest.TestCase):

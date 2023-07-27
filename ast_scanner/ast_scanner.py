@@ -325,3 +325,21 @@ class Tools(object):
                 return True
         else:
             return False
+    
+    @staticmethod
+    def check_modifier(function_object, modifier: list):
+        """Checking if a function declaration contains certain modifiers"""
+        mod_list = list()
+        function_modifier_list = [mod["name"] for mod in function_object.node["modifiers"]]
+        if hasattr(function_object, "stateMutability") and function_object.stateMutability:
+            function_modifier_list.append(function_object.stateMutability)
+
+        if hasattr(function_object, "visibility") and function_object.visibility:
+            function_modifier_list.append(function_object.visibility)
+
+        for mod in function_modifier_list:
+            for modif in modifier:
+                if modif in mod:
+                    mod_list.append(mod)
+
+        return list(set(mod_list))

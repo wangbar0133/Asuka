@@ -1826,8 +1826,10 @@ def parse(text, start="sourceUnit", loc=False, strict=False, path=None):
     input_stream = InputStream(text)
 
     lexer = SolidityLexer(input_stream)
+    lexer.removeErrorListeners()
     token_stream = CommonTokenStream(lexer)
     parser = SolidityParser(token_stream)
+    parser.removeErrorListeners()
     ast = AstVisitor(file_path=path)
 
     Node.ENABLE_LOC = loc

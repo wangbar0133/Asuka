@@ -104,7 +104,7 @@ def main():
         Printer.print_files(asuka.allSolFiles)
         Printer.print_blue("Check list:")
         Printer.print_detectors(detectors, allDetectorTable)
-        Printer.print_yellow("Antlr4 warn:")
+        # Printer.print_yellow("Antlr4 warn:")
         
         # Start scan task
         asuka.scan()

@@ -17,6 +17,8 @@ def check(scan: Scanner):
         # the function should be call by external and none admin
         if not function.functionObject.node.visibility in ["default", "public", "external"]:
             continue
+        if function.functionObject.node.visibility in ["view", "pure"]:
+            continue
         if Tools.check_modifier(function.functionObject, ["onlyOwner", "onlyGov", "onlyAdmin"]):
             continue
         # get all member access function call

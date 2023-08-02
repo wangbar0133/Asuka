@@ -26,6 +26,8 @@ def check(scan: Scanner):
     vul_list = list()
     for contract in scan.contracts:
         for function in contract.functions:
+            if function.functionObject.node.visibility in ["view", "pure"]:
+                continue
             if "nonReentrant" in function.modifiers:
                 continue
             # check call transfer seend low level function call

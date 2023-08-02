@@ -33,7 +33,7 @@ class Asuka(object):
         This is Asuka class which is core of detect vuls.
     """
     
-    def __init__(self, _root:str, _detectors=allDetectorList, _threads=4, _chainType=None, _apiKey=None):
+    def __init__(self, _root="", _detectors=allDetectorList, _threads=4, _chainType=None, _apiKey=None):
         """ init Asuka Object
 
         Args:
@@ -82,6 +82,9 @@ class Asuka(object):
         Returns:
             list: A list of all solidity files.
         """
+        if not path:
+            return list()
+        
         if check_address(address=path) \
             and self.chainType \
                 and self.apiKey:

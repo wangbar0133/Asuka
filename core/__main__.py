@@ -102,6 +102,12 @@ def main() -> None:
         # Create a Asuka object
         asuka = Asuka(_root=root, _detectors=detectors, _threads=thread, _chainType=chainType,_apiKey=apiKey)
         Printer.print_files(asuka.allSolFiles)
+        missing_imports = asuka.project.missing_imports()
+        if missing_imports:
+            Printer.print_red(f"{len(missing_imports)} import(s) not found:")
+            for importer, raw_path in missing_imports:
+                print(f"  {importer}: {raw_path}")
+            print("\n")
         Printer.print_blue("Check list:")
         Printer.print_detectors(detectors, ALL_DETECTORS)
         # Printer.print_yellow("Antlr4 warn:")

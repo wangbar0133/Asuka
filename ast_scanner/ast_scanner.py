@@ -19,8 +19,9 @@ class Scanner:
         A class to scanning solidity unit object.
     """
 
-    def __init__(self, sourceUnitObject: Node):
+    def __init__(self, sourceUnitObject: Node, project=None):
         self.sourceUnitObject = sourceUnitObject
+        self.project = project
         self.fileName: str = self.sourceUnitObject.fileName
         self.contracts: list[Contract] = []
         self.interfaces: list[Node] = []
@@ -37,7 +38,7 @@ class Scanner:
                 self.interfaces.append(contractObject)
 
             elif contractObject.kind == "contract":
-                self.contracts.append(Contract(contractObject))
+                self.contracts.append(Contract(contractObject, project=self.project))
 
     def get_functions(self) -> None:
         for contract in self.contracts:
@@ -50,15 +51,69 @@ class Scanner:
 
 class Contract:
 
-    def __init__(self, contractObject: Node):
+    def __init__(self, contractObject: Node, project=None):
         self.contractObject = contractObject
+        self.project = project
         self.functions: list[Function] = []
+        self.base_names: list[str] = [
+            base.get("namePath")
+            for base in (contractObject.node.get("baseContracts") or [])
+            if base.get("namePath")
+        ]
         self.get_functions()
 
     def get_functions(self) -> None:
         if self.contractObject.functions:
             for functionObject in self.contractObject.functions.values():
                 self.functions.append(Function(functionObject))
+
+    def base_contracts(self) -> list[tuple[str, object]]:
+        """Inheritance chain, nearest first, resolved across files.
+
+        Requires a Scanner-level project; without one (or for unknown
+        names) the chain is empty. Cycles are tolerated.
+        """
+        if self.project is None:
+            return []
+        resolved: list[tuple[str, object]] = []
+        seen: set[str] = set()
+        queue = list(self.base_names)
+        while queue:
+            name = queue.pop(0)
+            if name in seen:
+                continue
+            seen.add(name)
+            found = self.project.find_symbol(name)
+            if found is None:
+                continue
+            _, base = found
+            resolved.append((name, base))
+            for parent in (base.node.get("baseContracts") or []):
+                if parent.get("namePath"):
+                    queue.append(parent["namePath"])
+        return resolved
+
+    def resolved_state_vars(self) -> dict:
+        """Own state variables plus inherited ones (nearest wins).
+
+        Inherited values are merged underneath so a redeclared variable
+        keeps the derived contract's node.
+        """
+        resolved: dict = {}
+        for _, base in reversed(self.base_contracts()):
+            resolved.update(base.stateVars)
+        resolved.update(self.contractObject.stateVars)
+        return resolved
+
+    def resolved_functions(self) -> list["Function"]:
+        """Own functions plus inherited ones (nearest definition wins)."""
+        by_name: dict[str, Function] = {}
+        for _, base in reversed(self.base_contracts()):
+            for name, function_object in (base.functions or {}).items():
+                by_name[name] = Function(function_object)
+        for name, function_object in (self.contractObject.functions or {}).items():
+            by_name[name] = Function(function_object)
+        return list(by_name.values())
 
 
 class Function:

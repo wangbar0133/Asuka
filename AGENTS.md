@@ -31,8 +31,8 @@ python3.11 -m venv .venv          # 需要 Python >= 3.11
 | 查看检测器列表 | `.venv/bin/asuka -d` |
 
 **提交前必须 `pytest` 和 `ruff check .` 双绿。** CI(GitHub Actions)会在
-Python 3.11–3.14 矩阵上强制执行同样检查(含覆盖率)。当前覆盖率 99%,
-未覆盖的 13 行均为防御性分支或环境特定代码(Windows 分支、死防御等),
+Python 3.11–3.14 矩阵上强制执行同样检查(含覆盖率)。当前覆盖率 98%,
+未覆盖的约 26 行均为防御性分支或环境特定代码(Windows 分支、死防御等),
 详见 `pytest --cov` 输出;新增代码必须带测试。
 
 ## 架构
@@ -41,6 +41,8 @@ Python 3.11–3.14 矩阵上强制执行同样检查(含覆盖率)。当前覆�
 CLI 入口            core/__main__.py   argparse;core/asuka.py  Asuka 类,multiprocessing.Pool 并发
    │
    ├─ 远程地址      scraper/scraper.py Etherscan API 拉源码到 /tmp/AsukaTmp
+   │
+   ├─ 跨文件        core/project.py   解析 import 图(仅本地相对/根相对)、符号表、继承链
    │
    ├─ 解析          solidity_antlr4_parser/  ANTLR 生成的词法/语法分析 + parser.py(objectify)
    │
@@ -51,8 +53,9 @@ CLI 入口            core/__main__.py   argparse;core/asuka.py  Asuka 类,multi
    └─ 输出          core/printer.py  风险分级 + 源码片段定位
 ```
 
-数据流:`.sol 文件 → parse_file() → objectify() → Scanner → detector.check(scanner) → Vuls`,
-`VulTable`(dict 子类)按 SWC id 聚合各文件结果。
+数据流:`.sol 文件 → Project(import 图 + 符号表) → Scanner(可查跨文件继承) → detector.check(scanner) → Vuls`,
+`VulTable`(dict 子类)按 SWC id 聚合各文件结果。`Contract.resolved_state_vars()` /
+`resolved_functions()` 会把继承链(可跨文件)的成员合并进来。
 
 ## 关键约定
 
@@ -128,6 +131,21 @@ CLI 入口            core/__main__.py   argparse;core/asuka.py  Asuka 类,multi
 - `vuls/utils.py:check_solc_version` 支持 `||` 复合 pragma(任一段低于目标版本
   即触发),但仍不处理 `solidity` 关键字前缀等非常规格式。
 - ANTLR 运行时钉死在 `antlr4-python3-runtime==4.9.2`,升级需要重新生成 parser(见优化路线)。
+
+### 跨文件(import)语义
+
+- 只解析**本地导入**:`"./x.sol"`、`"../lib/x.sol"`(相对导入者)与 `"/x.sol"`
+  (相对扫描根)。包式路径(`"@openzeppelin/..."`)记为 external,**不解析**
+  (无 node_modules / remappings 支持)。
+- 本地相对导入找不到文件时记为 **missing**,CLI 用红色列出——这是项目错误,
+  不是依赖缺失。
+- **导入仅用于语义解析,不是扫描目标**:单文件目标不会连带扫描它引用的文件;
+  但目录扫描本来就会扫描树内所有 .sol(它们属于用户自己的代码)。
+- `Project` 通过 `core.project.project_for()` 做**进程级缓存**:multiprocessing
+  worker 各自首次使用时构建一次(`Asuka.__getstate__` 刻意不 pickle 这棵图)。
+  大项目下这是已知的内存/时间权衡。
+- 解析结果单一来源:`Asuka._source_unit_for()` 复用 Project 已解析的 AST,
+  不重复 parse。
 
 ### 代码风格
 

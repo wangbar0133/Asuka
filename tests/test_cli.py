@@ -135,6 +135,51 @@ class TestMainInProcess:
         out = capsys.readouterr().out
         assert "failed to scan" in out
 
+    def test_main_reports_missing_imports(self, monkeypatch, capsys, tmp_path):
+        from core import __main__ as core_main
+
+        (tmp_path / "a.sol").write_text(
+            'pragma solidity ^0.8.0;\n'
+            'import "./missing.sol";\n'
+            "contract A {}\n"
+        )
+        monkeypatch.setattr(sys, "argv", ["asuka", str(tmp_path)])
+        core_main.main()
+        out = capsys.readouterr().out
+        assert "1 import(s) not found" in out
+        assert "missing.sol" in out
+        # the missing import is a warning, not a scan failure
+        assert "failed to scan" not in out
+
+    def test_main_resolves_relative_imports(self, monkeypatch, capsys, tmp_path):
+        """A single-file target resolves its import without scanning it."""
+        from core import __main__ as core_main
+
+        (tmp_path / "shared").mkdir()
+        (tmp_path / "shared" / "Base.sol").write_text(
+            "pragma solidity ^0.8.0;\n"
+            "contract Base {\n"
+            "    address public owner;\n"
+            "}\n"
+        )
+        (tmp_path / "main.sol").write_text(
+            'pragma solidity ^0.8.0;\n'
+            'import "./shared/Base.sol";\n'
+            "contract Main is Base {\n"
+            "    function kill() public {\n"
+            "        selfdestruct(payable(msg.sender));\n"
+            "    }\n"
+            "}\n"
+        )
+        monkeypatch.setattr(sys, "argv", ["asuka", str(tmp_path / "main.sol")])
+        core_main.main()
+        out = capsys.readouterr().out
+        assert "import(s) not found" not in out
+        assert "failed to scan" not in out
+        # only the named target is scanned; the import is resolution-only
+        assert "1 solidity contract files were found" in out
+        assert "s106:Unprotected Selfdestruct" in out
+
     def test_list_detectors_action(self, capsys):
         from core import __main__ as core_main
 

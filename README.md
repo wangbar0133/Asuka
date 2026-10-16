@@ -76,6 +76,24 @@ You can specify threads by using -t.
 asuka . -t 4
 ```
 
+## Cross-file scanning
+
+Local imports (`"./x.sol"`, `"../lib/x.sol"`, `"/contracts/x.sol"`) are resolved
+automatically: imported files are parsed and indexed so inheritance chains and
+types resolve across files, and `Contract.resolved_state_vars()` /
+`resolved_functions()` include inherited members.
+
+Imports are **resolution-only** - a dependency is never a scan target, and
+package-style paths (`"@openzeppelin/..."`) are recorded but not resolved
+(no node_modules/remappings support). A local import that cannot be found is
+reported as a warning:
+
+```shell
+asuka contracts/
+# 2 import(s) not found:
+#   contracts/A.sol: ./missing/B.sol
+```
+
 ## Detectors
 
 Most detectors map to an [SWC](https://swcregistry.io/) entry; detectors without

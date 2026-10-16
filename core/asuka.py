@@ -1,6 +1,7 @@
 import logging
 import os
 from multiprocessing import Pool
+from pathlib import Path
 
 from ast_scanner.ast_scanner import Scanner
 from scraper.scraper import Scraper
@@ -8,6 +9,7 @@ from solidity_antlr4_parser.parser import objectify, parse_file
 from vuls.all_detector import ALL_DETECTORS, DETECTOR_IDS
 from vuls.vul import VulTable
 
+from .project import Project, project_for
 from .utils import check_address
 
 
@@ -35,6 +37,52 @@ class Asuka:
         self.vulList = list()
         self.vulTable = VulTable(_detectors)
         self.errors = list()
+        self._project: Project | None = None
+
+    def _project_root(self) -> Path:
+        """Directory that leading-slash imports resolve against."""
+        root = Path(self.root) if self.root else Path.cwd()
+        if root.is_dir():
+            return root.resolve()
+        if root.is_file():
+            return root.resolve().parent
+        if self.allSolFiles:
+            # e.g. sources fetched from a chain address into a temp dir
+            return Path(self.allSolFiles[0]).resolve().parent
+        return root.resolve().parent if str(root) else Path.cwd()
+
+    @property
+    def project(self) -> Project:
+        """Cross-file view over the scan targets and their local imports.
+
+        Loaded lazily and memoised per process: imported files are used
+        for symbol resolution only and are never scan targets.
+        """
+        if self._project is None:
+            self._project = project_for(self._project_root(), self.allSolFiles)
+        return self._project
+
+    def _source_unit_for(self, solFilePath: str):
+        """Objectified AST for one target, taken from the project cache."""
+        source_file = self.project.files.get(Path(solFilePath).resolve())
+        if source_file is None:
+            # not a loaded project target (direct scan_file call): parse now
+            tree = parse_file(path=solFilePath, loc=True, strict=True)
+            return objectify(tree, file_name=solFilePath)
+        if not source_file.ok:
+            raise RuntimeError(f"Parse file failed: {source_file.error}")
+        return source_file.source_unit
+
+    def __getstate__(self) -> dict:
+        """Keep the parsed cross-file graph out of pickling.
+
+        multiprocessing workers receive this instance for every task;
+        each worker rebuilds the project once through the process-local
+        cache instead of receiving every AST.
+        """
+        state = self.__dict__.copy()
+        state["_project"] = None
+        return state
 
     def _is_sol_file(self, path:str) -> bool:
         """check the file of path is solidity file.
@@ -119,11 +167,11 @@ class Asuka:
         solFilePath, detetors = param
         try:
             """
-                parse solidity source code to an AST object
-                by using solidity_antlr4_parser module.
+                Parse solidity source code to an AST object.
+                The cross-file project already parsed every scan target,
+                so reuse its result instead of parsing twice.
             """
-            sourceUnit = parse_file(path=solFilePath, loc=True, strict=True)
-            sourceUnitObject = objectify(sourceUnit, file_name=solFilePath)
+            sourceUnitObject = self._source_unit_for(solFilePath)
         except Exception as e:
             logging.info(f"Parse file failed: {solFilePath}")
             logging.exception(e)
@@ -134,7 +182,7 @@ class Asuka:
                 Scanning solidity AST object to get scanner object
                 by using ast_scanner moudule.
             """
-            scanner = Scanner(sourceUnitObject)
+            scanner = Scanner(sourceUnitObject, project=self.project)
         except Exception as e:
             logging.info(f"Scan ast failed: {solFilePath}")
             logging.exception(e)

@@ -1763,6 +1763,9 @@ def objectify(start_node, file_name=None):
             self.pragmas = []
             self.contracts = {}
             self.interfaces = {}
+            # libraries are kept separate so the meaning of `contracts`
+            # stays unchanged; cross-file symbol resolution uses this
+            self.libraries = {}
 
             self._current_contract = None
 
@@ -1779,6 +1782,12 @@ def objectify(start_node, file_name=None):
 
                 # subparse the contracts //slightly inefficient but more readable :)
                 visit(node, self.contracts[node.name])
+
+            elif node.kind == "library":
+                self.libraries[node.name] = ObjectifyContractVisitor(node)
+                self._current_contract = self.libraries[node.name]
+
+                visit(node, self.libraries[node.name])
 
     objectified_source_unit = ObjectifySourceUnitVisitor(start_node)
     visit(start_node, objectified_source_unit)

@@ -144,3 +144,64 @@ def test_detector_crash_is_isolated(monkeypatch):
     assert vul_list is None
     assert "Detector failed" in error
     assert "reentrancy.sol" in error
+
+
+class TestCrossFileIntegration:
+    PROJECT = Path(__file__).resolve().parent / "fixtures" / "project"
+
+    def test_project_is_available_and_cached(self):
+        asuka = Asuka(_root=str(self.PROJECT / "main.sol"))
+        assert asuka.project is not None
+        assert asuka.project is asuka.project          # memoised on the instance
+        assert "Base" in asuka.project.symbols
+
+    def test_project_is_dropped_when_pickled(self):
+        """Workers rebuild the graph instead of receiving it per task."""
+        import pickle
+
+        asuka = Asuka(_root=str(self.PROJECT / "main.sol"))
+        assert asuka.project is not None                # load in this process
+
+        restored = pickle.loads(pickle.dumps(asuka))
+        assert restored._project is None
+        assert restored.project is not None             # rebuilt lazily
+        assert restored.allSolFiles == asuka.allSolFiles
+
+    def test_scan_file_reuses_the_project_parse(self):
+        asuka = Asuka(_root=str(self.PROJECT / "main.sol"))
+        project = asuka.project
+        source_unit = asuka._source_unit_for(str(self.PROJECT / "main.sol"))
+        assert source_unit is project.files[
+            (self.PROJECT / "main.sol").resolve()
+        ].source_unit
+
+    def test_scan_file_accepts_a_file_outside_the_project(self):
+        """Direct scan_file calls fall back to parsing on demand."""
+        asuka = Asuka(_root=str(TEST_DATA / "reentrancy.sol"))
+        other = TEST_DATA / "tx_origin.sol"       # not a project target
+        vul_list = asuka.scan_file((str(other), [115]))
+        assert vul_list[0].vul_count() == 1
+
+    def test_project_root_for_scraped_sources(self, monkeypatch, tmp_path):
+        import core.asuka as asuka_module
+
+        sol = tmp_path / "Token.sol"
+        sol.write_text("contract Token {}")
+
+        class StubScraper:
+            def __init__(self, chainType, apiKey):
+                pass
+
+            def get_source_code(self, address):
+                return str(tmp_path)
+
+        monkeypatch.setattr(asuka_module, "Scraper", StubScraper)
+        asuka = Asuka(_root="0x" + "ab" * 20, _chainType="ETH", _apiKey="k")
+        assert asuka._project_root() == tmp_path.resolve()
+        assert asuka.project.find_symbol("Token") is not None
+
+    def test_project_root_fallback_without_files(self):
+        asuka = Asuka.__new__(Asuka)
+        asuka.root = "0x" + "ab" * 20
+        asuka.allSolFiles = []
+        assert asuka._project_root().is_dir()

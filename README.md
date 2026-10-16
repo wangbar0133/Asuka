@@ -78,19 +78,29 @@ asuka . -t 4
 
 ## Detectors
 
-All detectors are base on SWC.
+Most detectors map to an [SWC](https://swcregistry.io/) entry; detectors without
+one use the custom 2xx range.
 
-| ID          | Name                            |
-| ----------- | ------------------------------- |
-| SWC-100     | Function Default Visibility     |
-| SWC-101     | Int Overflow                    |
-| SWC-104     | Unchecked Return Value          |
-| SWC-107     | Reentrancy                      |
-| SWC-109     | Access of Uninitialized Pointer |
-| SWC-112     | Delegatecall to Untrusted Callee|
-| SWC-115     | Authorization through tx.origin |
-| SWC-137     | Arbitrary calls                 |
-| SWC-138     | msg.value in loop               |
+| ID          | Name                             | Basis |
+| ----------- | -------------------------------- | ----- |
+| SWC-100     | Function Default Visibility      | SWC   |
+| SWC-101     | Int Overflow                     | SWC   |
+| SWC-104     | Unchecked Return Value           | SWC   |
+| SWC-106     | Unprotected Selfdestruct         | SWC   |
+| SWC-107     | Reentrancy                       | SWC   |
+| SWC-109     | Access of Uninitialized Pointer  | SWC   |
+| SWC-112     | Delegatecall to Untrusted Callee | SWC   |
+| SWC-115     | Authorization through tx.origin  | SWC   |
+| SWC-116     | Timestamp Dependence             | SWC   |
+| SWC-120     | Weak Sources of Randomness       | SWC   |
+| 137         | Arbitrary calls                  | custom|
+| 138         | msg.value in loop                | custom|
+| 201         | Unchecked Token Transfer         | custom|
+| 202         | Imprecise Arithmetic Order       | custom|
+| 203         | Tautological Comparison          | custom|
+| 204         | Right-To-Left-Override Character | custom|
+| 205         | Deprecated Solidity Standards    | custom|
+| 206         | Dangerous Unary Expression       | custom|
 
 More Smart Contract Weakness: <https://swcregistry.io/>
 

@@ -50,6 +50,6 @@ def test_all_branch_fixtures_are_strict_clean():
     """The targeted fixtures in tests/fixtures/ must also strict-parse."""
     fixtures = Path(__file__).resolve().parent / "fixtures"
     files = sorted(fixtures.glob("*.sol"))
-    assert len(files) == 4
+    assert len(files) == 9
     for sol in files:
         parse(sol.read_text(), strict=True, path=str(sol))

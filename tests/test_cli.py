@@ -75,7 +75,7 @@ def test_cli_reports_broken_files_without_aborting(tmp_path):
 def test_cli_list_detectors():
     result = _run_cli("-d")
     assert result.returncode == 0
-    assert "Find 9 detectors" in result.stdout
+    assert "Find 18 detectors" in result.stdout
     for vul_id in (100, 101, 104, 107, 109, 112, 115, 137, 138):
         assert f"s{vul_id}" in result.stdout
 
@@ -142,7 +142,7 @@ class TestMainInProcess:
             core_main.parser.parse_args(["-d"])
         assert exc_info.value.code == 0
         out = capsys.readouterr().out
-        assert "Find 9 detectors" in out
+        assert "Find 18 detectors" in out
 
     def test_main_include_filter(self, monkeypatch, capsys):
         from core import __main__ as core_main

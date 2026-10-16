@@ -71,16 +71,24 @@ CLI 入口            core/__main__.py   argparse;core/asuka.py  Asuka 类,multi
 
 ### 测试即行为基线
 
-`tests/test_detectors.py` 的 `EXPECTED` 字典记录了 10 个测试合约 × 9 个检测器的
+`tests/test_detectors.py` 的 `EXPECTED` 字典记录了 10 个测试合约 × 18 个检测器的
 **精确发现数**。改变检测器逻辑时必须在同一提交里更新对应期望值,并说明原因。
 新增检测器时同步更新 `EXPECTED_IDS` 和 `EXPECTED`。
+
+### ID 体系
+
+- 官方 SWC 注册表有对应条目的用 SWC 编号(100/101/104/106/107/109/112/115/116/120)
+- 没有 SWC 条目的用 **2xx 自造段**(201 unchecked-transfer、202 divide-before-multiply、
+  203 tautology、204 rtlo、205 deprecated-standards、206 incorrect-unary)
+- 137/138 是项目早期自造 ID(arbitrary calls / msg.value in loop),已发布并写进
+  README,保留不动;新检测器不要再占用 1xx 段
 
 两套扫描夹具:
 - `test_data/` —— 基线矩阵专用,**10 个文件**,计数锁定在 `EXPECTED`;
   必须保持 strict 可解析(勿增删文件,`test_parser.py` 有数量守卫)。
 - `tests/fixtures/` —— 针对特定分支的定向夹具(storage 写入、require 消费、
-  误报防线、控制流),用 `scan_fixture` 夹具访问,不属于基线矩阵;
-  同样必须 strict 可解析(数量守卫为 4 个)。
+  误报防线、控制流、各批次检测器的正负例),用 `scan_fixture` 夹具访问,
+  不属于基线矩阵;同样必须 strict 可解析(数量守卫为 9 个)。
 
 测试要点:CLI 用 `tests/test_cli.py::TestMainInProcess` 进程内驱动 `main()`
 (子进程测试不计入覆盖率);`Asuka.scan` 走 multiprocessing 子进程,

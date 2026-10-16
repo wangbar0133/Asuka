@@ -294,7 +294,9 @@ class Function(object):
 
     def get_below_statements(self, node):
         below_statements = list()
-        if not hasattr(node, "loc"):
+        # Node.__getattr__ raises KeyError for missing keys, which
+        # hasattr() does not catch - use the dict interface instead.
+        if not node.get("loc"):
             return below_statements
         nodeStartLine = node.loc["start"]["line"]
         for statement in self.statements:
@@ -312,8 +314,12 @@ class Tools(object):
         if loc0["start"]["line"] == loc1["start"]["line"] \
             and loc0["end"]["line"] == loc1["end"]["line"] \
                 and loc0["start"]["line"] == loc0["end"]["line"]:
-                    if loc0["start"].column <= loc1["start"].column \
-                        and loc0["start"].column <= loc1["start"].column:
+                    # both nodes on one line: compare columns.
+                    # (attribute access on plain dicts used to crash here,
+                    # and the end-column comparison was a copy-paste of the
+                    # start comparison)
+                    if loc0["start"]["column"] <= loc1["start"]["column"] \
+                        and loc0["end"]["column"] >= loc1["end"]["column"]:
                             return True
                     else:
                         return False

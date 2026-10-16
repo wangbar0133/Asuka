@@ -1,4 +1,5 @@
 from ast_scanner.ast_scanner import Scanner
+
 from .vul import Vul, Vuls
 
 NAME = "Unchecked Return Value"
@@ -19,7 +20,7 @@ def check(scan: Scanner):
         # check if call() in function
         if not check_functioncall(function.functionCalls):
             continue
-        
+
         for statement in function.statements:
             if statement.type != "ExpressionStatement":
                 continue
@@ -36,7 +37,7 @@ def check(scan: Scanner):
                         locList=[statement.expression.loc]
                     )
                 )
-                
+
         # con't handle address.call{ value: value }()
         returnValueMap = dict()
         for statement in function.statements:
@@ -50,7 +51,7 @@ def check(scan: Scanner):
                 if statement.initialValue.expression.memberName not in METHED:
                     continue
                 returnValueMap[statement.variables[0].name] = statement
-            
+
             elif statement.type == "ExpressionStatement" and returnValueMap:
                 if statement.expression.type != "FunctionCall":
                     continue
@@ -64,8 +65,8 @@ def check(scan: Scanner):
                     continue
                 name = statement.expression.arguments[0].name
                 if name in returnValueMap.keys():
-                    del returnValueMap[name]  
-        
+                    del returnValueMap[name]
+
         if returnValueMap:
             for statement in returnValueMap.values():
                 vul_list.append(
@@ -73,8 +74,8 @@ def check(scan: Scanner):
                         fileName=scan.fileName,
                         locList=[statement.loc]
                     )
-                )                 
-                
+                )
+
     return Vuls(
             name=NAME,
             id=ID,
@@ -83,8 +84,8 @@ def check(scan: Scanner):
             risk=RISK,
             vulList=vul_list
         )
-    
-    
+
+
 def check_functioncall(functionCalls):
     for functionCall in functionCalls:
         if functionCall["name"] in METHED:

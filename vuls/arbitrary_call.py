@@ -1,4 +1,5 @@
 from ast_scanner.ast_scanner import Scanner, Tools
+
 from .vul import Vul, Vuls
 
 NAME = "Arbitrary calls"
@@ -15,7 +16,7 @@ def check(scan: Scanner):
     vul_list = list()
     for function in scan.functions:
         # the function should be call by external and none admin
-        if not function.functionObject.node.visibility in ["default", "public", "external"]:
+        if function.functionObject.node.visibility not in ["default", "public", "external"]:
             continue
         if function.functionObject.node.visibility in ["view", "pure"]:
             continue
@@ -30,7 +31,7 @@ def check(scan: Scanner):
             member = expression.expression
             if member.type == "FunctionCall":
                 # IERC20(token).transferFrom(from, address(this), amount);
-                
+
                 if not member.expression.type == "Identifier":
                     continue
                 argumens = member.arguments
@@ -73,7 +74,7 @@ def check(scan: Scanner):
                         locList=[function.functionObject.node.loc]
                     )
                 )
-        
+
     return Vuls(
             name=NAME,
             id=ID,
@@ -82,4 +83,3 @@ def check(scan: Scanner):
             risk=RISK,
             vulList=vul_list
         )
-    

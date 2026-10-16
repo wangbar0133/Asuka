@@ -1,4 +1,5 @@
 from ast_scanner.ast_scanner import Scanner
+
 from .vul import Vul, Vuls
 
 NAME = "Access of Uninitialized Pointer"
@@ -26,7 +27,7 @@ def check(scan: Scanner):
                         locList=[statement.loc]
                     )
                 )
-                
+
     return Vuls(
             name=NAME,
             id=ID,
@@ -35,4 +36,3 @@ def check(scan: Scanner):
             risk=RISK,
             vulList=vul_list
         )
-    

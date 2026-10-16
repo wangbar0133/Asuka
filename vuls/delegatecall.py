@@ -1,4 +1,5 @@
 from ast_scanner.ast_scanner import Scanner
+
 from .vul import Vul, Vuls
 
 NAME = "Delegatecall to Untrusted Callee"

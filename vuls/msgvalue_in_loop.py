@@ -1,4 +1,5 @@
 from ast_scanner.ast_scanner import Scanner, Tools
+
 from .vul import Vul, Vuls
 
 NAME = "msg.value in loop"
@@ -20,9 +21,9 @@ def check(scan: Scanner):
                 forStatements.append(statement)
         if len(forStatements) == 0:
             continue
-        
+
         msgValueExpression = list()
-        
+
         for expression in function.expressions:
             if not expression.type == "MemberAccess":
                 continue
@@ -31,11 +32,11 @@ def check(scan: Scanner):
             if not expression.expression.type == "Identifier":
                 continue
             if expression.expression.name == "msg":
-                msgValueExpression.append(expression.expression)       
-                
+                msgValueExpression.append(expression.expression)
+
         if len(msgValueExpression) == 0:
             continue
-        
+
         for statement in forStatements:
             for expression in msgValueExpression:
                 if Tools.scope_check(statement, expression):
@@ -48,8 +49,8 @@ def check(scan: Scanner):
                                 ]
                             )
                         )
-            
-    
+
+
     return Vuls(
             name=NAME,
             id=ID,
@@ -58,4 +59,3 @@ def check(scan: Scanner):
             risk=RISK,
             vulList=vul_list
         )
-    

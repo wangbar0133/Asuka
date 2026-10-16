@@ -1,7 +1,8 @@
 import re
 
+
 def check_address(address: str) -> bool:
-    return re.search("^0[xX][a-fA-F0-9]{40}$", address) != None
+    return re.search("^0[xX][a-fA-F0-9]{40}$", address) is not None
 
 def merge_loc_list(locList:list) -> list:
     locListMerged = list()
@@ -13,4 +14,3 @@ def merge_loc_list(locList:list) -> list:
         else:
             locListMerged.append(loc)
     return locListMerged
-                        

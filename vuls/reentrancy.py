@@ -1,18 +1,19 @@
 from ast_scanner.ast_scanner import Scanner
+
 from .vul import Vul, Vuls
 
 NAME = "Reentrancy"
 
 ID = 107
 
-DESCREIBE = """One of the major dangers of calling external contracts is that they can take over the control flow. 
-In the reentrancy attack (a.k.a. recursive call attack), a malicious contract calls back into the calling contract 
-before the first invocation of the function is finished. This may cause the different invocations of the function 
+DESCREIBE = """One of the major dangers of calling external contracts is that they can take over the control flow.
+In the reentrancy attack (a.k.a. recursive call attack), a malicious contract calls back into the calling contract
+before the first invocation of the function is finished. This may cause the different invocations of the function
 to interact in undesirable ways."""
 
-ADVICE = """One of the major dangers of calling external contracts is that they can take over the control flow. 
+ADVICE = """One of the major dangers of calling external contracts is that they can take over the control flow.
 In the reentrancy attack (a.k.a. recursive call attack), a malicious contract calls back into the calling contract
-before the first invocation of the function is finished. This may cause the different invocations of the function 
+before the first invocation of the function is finished. This may cause the different invocations of the function
 to interact in undesirable ways. Or use a reentrancy lock (ie. OpenZeppelin's ReentrancyGuard"""
 
 RISK = 3
@@ -46,7 +47,7 @@ def check(scan: Scanner):
                 if expression.operator not in STATE:
                     continue
                 left = expression.left
-                
+
                 if left.type == "IndexAccess":
                     if left.base.name in contract.contractObject.stateVars.keys():
                         vul_list.append(
@@ -70,7 +71,7 @@ def check(scan: Scanner):
                     continue
                 if declartion.storageLocation == "storage":
                     functionStorageDeclarations[name] = declartion
-                             
+
             for statement in below_statements:
                 if statement.type != "ExpressionStatement":
                     continue
@@ -100,7 +101,7 @@ def check(scan: Scanner):
             risk=RISK,
             vulList=vul_list
         )
-    
+
 
 def check_functioncall(functionCalls):
     for functionCall in functionCalls:

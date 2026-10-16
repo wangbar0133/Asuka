@@ -1,11 +1,8 @@
-from ast import operator
-
-
 class Scanner(object):
     """
         A class to scanning solidity unit object.
     """
-    
+
     def __init__(self, sourceUnitObject):
         self.sourceUnitObject = sourceUnitObject
         self.fileName = self.sourceUnitObject.fileName
@@ -13,11 +10,11 @@ class Scanner(object):
         self.interfaces = []
         self.functions = []
         self.operators = []
-        
+
         self.filter_contracts()
         self.get_functions()
         self.get_operators()
-        
+
     def filter_contracts(self):
         for contractObject in self.sourceUnitObject.contracts.values():
             if contractObject.kind == "interface":
@@ -25,32 +22,32 @@ class Scanner(object):
 
             elif contractObject.kind == "contract":
                 self.contracts.append(Contract(contractObject))
-    
+
     def get_functions(self):
         for contract in self.contracts:
             self.functions += contract.functions
-    
+
     def get_operators(self):
         for function in self.functions:
             self.operators += function.operators
-        
-        
+
+
 
 class Contract(object):
-    
+
     def __init__(self, contractObject):
         self.contractObject = contractObject
         self.functions = []
         self.get_functions()
-                    
+
     def get_functions(self):
         if self.contractObject.functions:
             for functionObject in self.contractObject.functions.values():
                 self.functions.append(Function(functionObject))
-        
+
 
 class Function(object):
-    
+
     def __init__(self, functionObject):
         self.functionObject = functionObject
         self.modifiers = []
@@ -61,25 +58,25 @@ class Function(object):
         self.numberLiteral = []
         self.variableDeclaration = []
         self.operators = []
-        
+
         self.get_modifier()
         self.get_statements()
         self.get_expressions()
         self.get_variables()
         self.get_number_literals()
-        self.get_variable_declarations() 
+        self.get_variable_declarations()
         self.get_operators()
         self.get_function_calls()
-    
+
     def get_modifier(self):
         self.modifiers = [mod.name for mod in self.functionObject.node.modifiers]
-        
-        
+
+
     def get_statements(self):
         if self.functionObject.node.body:
             for statement in self.functionObject.node.body.statements:
                 self.visit_statement(statement)
-    
+
     def visit_statement(self, statement):
         if statement:
             self.statements.append(statement)
@@ -87,10 +84,10 @@ class Function(object):
                 self.visit_statement(statement.condition)
                 self.visit_statement(statement.TrueBody)
                 self.visit_statement(statement.FalseBody)
-            
+
             elif statement.type == "WhileStatement":
                 self.visit_statement(statement.condition)
-                
+
             elif statement.type == "ForStatement":
                 self.visit_statement(statement.initExpression)
                 self.visit_statement(statement.conditionExpression)
@@ -117,23 +114,23 @@ class Function(object):
 
             else:
                 pass
-               
+
     def get_expressions(self):
         if self.statements:
             for statement in self.statements:
-                self.get_expression(statement)           
-               
+                self.get_expression(statement)
+
     def get_expression(self, expressionObject):
-        
+
         class Expression(dict):
-            
+
             def __getattr__(self, key):
                 return self.get(key)
-            
-            def __setattr__(self, key, value):
-                self[key] = value 	        
 
-        
+            def __setattr__(self, key, value):
+                self[key] = value
+
+
         if expressionObject.type == "Identifier":
             self.expressions.append(
                 Expression(
@@ -251,7 +248,7 @@ class Function(object):
                     )
                     for argument in expressionObject.arguments:
                         self.get_expression(argument)
-                
+
                 else:
                     self.get_expression(expressionObject.expression)
 
@@ -260,41 +257,41 @@ class Function(object):
 
         elif expressionObject.type == "UnaryOperation":
             self.get_expression(expressionObject.subExpression)
-            
+
     def get_variables(self):
         if self.expressions:
             for expression in self.expressions:
                 if expression["type"] == "Identifier":
                     self.variables.append(expression)
-                    
+
     def get_number_literals(self):
         if self.expressions:
             for expression in self.expressions:
                 if expression["type"] == "NumberLiteral":
                     self.numberLiteral.append(expression)
-    
+
     def get_variable_declarations(self):
         if self.expressions:
             for expression in self.expressions:
                 if expression["type"] == "VariableDeclaration":
                     self.variableDeclaration.append(expression)
-        
+
         for declaration in self.functionObject.declarations.values():
             if declaration.type == "VariableDeclaration":
                 self.variableDeclaration.append(declaration)
-                
+
     def get_operators(self):
         if self.expressions:
             for expression in self.expressions:
                 if expression["type"] == "BinaryOperation":
                     self.operators.append(expression)
-                    
+
     def get_function_calls(self):
         if self.expressions:
             for expression in self.expressions:
                 if expression["type"] == "FunctionCall":
                     self.functionCalls.append(expression)
-                        
+
     def get_below_statements(self, node):
         below_statements = list()
         if not hasattr(node, "loc"):
@@ -303,11 +300,11 @@ class Function(object):
         for statement in self.statements:
             if statement.loc["start"]["line"] >= nodeStartLine:
                 below_statements.append(statement)
-        return below_statements 
+        return below_statements
 
 
 class Tools(object):
-    
+
     @staticmethod
     def scope_check(ctx0, ctx1) -> bool:
         loc0 = ctx0.loc
@@ -325,7 +322,7 @@ class Tools(object):
                 return True
         else:
             return False
-    
+
     @staticmethod
     def check_modifier(function_object, modifier: list):
         """Checking if a function declaration contains certain modifiers"""

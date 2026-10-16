@@ -1,13 +1,14 @@
 from ast_scanner.ast_scanner import Scanner
+
 from .vul import Vul, Vuls
 
 NAME = "Authorization through tx.origin"
 
 ID = 115
 
-DESCREIBE = """tx.origin is a global variable in Solidity which returns the address of the account that sent the transaction. 
-Using the variable for authorization could make a contract vulnerable if an authorized account calls into a 
-malicious contract. A call could be made to the vulnerable contract that passes the authorization check since 
+DESCREIBE = """tx.origin is a global variable in Solidity which returns the address of the account that sent the transaction.
+Using the variable for authorization could make a contract vulnerable if an authorized account calls into a
+malicious contract. A call could be made to the vulnerable contract that passes the authorization check since
 tx.origin returns the original sender of the transaction which in this case is the authorized account."""
 
 ADVICE = "Use msg.sender instead."
@@ -28,7 +29,7 @@ def check(scan: Scanner):
                         locList=[functionCall.loc]
                     )
                 )
-            
+
     return Vuls(
             name=NAME,
             id=ID,
@@ -37,8 +38,8 @@ def check(scan: Scanner):
             risk=RISK,
             vulList=vul_list
         )
-    
-    
+
+
 def check_require(argument):
     if argument.type != "BinaryOperation":
         return False
@@ -50,7 +51,7 @@ def check_require(argument):
                     binary.append("tx.origin")
             elif node.memberName == "sender" and node.expression.type == "Identifier":
                 if node.expression.name == "msg":
-                    binary.append("msg.sender")        
+                    binary.append("msg.sender")
         else:
             binary.append("Identifier")
     if set(binary) == set(["tx.origin", "msg.sender"]):

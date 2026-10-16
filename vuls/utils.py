@@ -7,5 +7,5 @@ def check_solc_version(pragma: str, version: int):
         if int(minor) < version:
             return True
         return False
-    except:
+    except Exception:
         return False

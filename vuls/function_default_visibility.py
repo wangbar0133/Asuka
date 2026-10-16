@@ -1,5 +1,5 @@
 from ast_scanner.ast_scanner import Scanner
-from vuls.int_overflow import ADVICE
+
 from .vul import Vul, Vuls
 
 NAME = "Function Default Visibility"
@@ -25,7 +25,7 @@ def check(scan: Scanner):
                     }]
                 )
             )
-            
+
     return Vuls(
             name=NAME,
             id=ID,

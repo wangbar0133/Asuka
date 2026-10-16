@@ -1,6 +1,7 @@
 from ast_scanner.ast_scanner import Scanner
-from .vul import Vul, Vuls
+
 from .utils import check_solc_version
+from .vul import Vul, Vuls
 
 INVAILD_OP = ["+", "-", "/", "*", "+=", "-=", "*="]
 
@@ -36,7 +37,7 @@ def check(scan: Scanner):
                             )
                         )
             break
-                
+
     return Vuls(
             name=NAME,
             id=ID,
@@ -45,7 +46,7 @@ def check(scan: Scanner):
             risk=RISK,
             vulList=vul_list
         )
-    
+
 
 
 

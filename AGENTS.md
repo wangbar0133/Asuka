@@ -22,6 +22,7 @@ python3.11 -m venv .venv          # 需要 Python >= 3.11
 | 用途 | 命令 |
 |---|---|
 | 测试 | `.venv/bin/pytest` |
+| 测试 + 覆盖率 | `.venv/bin/pytest --cov` |
 | Lint | `.venv/bin/ruff check .` |
 | Lint 自动修复 | `.venv/bin/ruff check --fix .` |
 | CLI 扫描 | `.venv/bin/asuka .` 或 `.venv/bin/python -m core .` |
@@ -30,7 +31,9 @@ python3.11 -m venv .venv          # 需要 Python >= 3.11
 | 查看检测器列表 | `.venv/bin/asuka -d` |
 
 **提交前必须 `pytest` 和 `ruff check .` 双绿。** CI(GitHub Actions)会在
-Python 3.11–3.14 矩阵上强制执行同样检查。
+Python 3.11–3.14 矩阵上强制执行同样检查(含覆盖率)。当前覆盖率 99%,
+未覆盖的 13 行均为防御性分支或环境特定代码(Windows 分支、死防御等),
+详见 `pytest --cov` 输出;新增代码必须带测试。
 
 ## 架构
 
@@ -70,9 +73,21 @@ CLI 入口            core/__main__.py   argparse;core/asuka.py  Asuka 类,multi
 **精确发现数**。改变检测器逻辑时必须在同一提交里更新对应期望值,并说明原因。
 新增检测器时同步更新 `EXPECTED_IDS` 和 `EXPECTED`。
 
+两套扫描夹具:
+- `test_data/` —— 基线矩阵专用,**10 个文件**,计数锁定在 `EXPECTED`;
+  必须保持 strict 可解析(勿增删文件,`test_parser.py` 有数量守卫)。
+- `tests/fixtures/` —— 针对特定分支的定向夹具(storage 写入、require 消费、
+  误报防线、控制流),用 `scan_fixture` 夹具访问,不属于基线矩阵;
+  同样必须 strict 可解析(数量守卫为 4 个)。
+
+测试要点:CLI 用 `tests/test_cli.py::TestMainInProcess` 进程内驱动 `main()`
+(子进程测试不计入覆盖率);`Asuka.scan` 走 multiprocessing 子进程,
+覆盖率靠 `test_asuka.py` 直接调 `scan_file`/`_scan_file_isolated` 补偿。
+
 检测器统一通过 `function.functionObject.visibility` 读取可见性(不要用
 `.node.visibility`,两条路径历史上混用过;FunctionObject 现在保证该属性总是存在,
-缺失时为 None)。
+缺失时为 None)。view/pure 的判断必须用 `stateMutability`,
+**不是** `visibility`——历史上两个检测器因此对 view 函数误报过。
 
 ### 版本号
 

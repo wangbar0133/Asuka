@@ -25,6 +25,7 @@ asuka = "core.__main__:main"
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
+    "pytest-cov>=5.0",
     "ruff>=0.6",
 ]
 
@@ -44,6 +45,16 @@ version = { attr = "core.__version__" }
 testpaths = ["tests"]
 pythonpath = ["."]
 addopts = "-q"
+
+[tool.coverage.run]
+source = ["ast_scanner", "core", "scraper", "vuls"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = [
+    "if __name__ == .__main__.:",
+]
 
 [tool.ruff]
 line-length = 120

@@ -44,3 +44,12 @@ def test_all_test_data_files_are_strict_clean():
     assert len(files) == 10
     for sol in files:
         parse(sol.read_text(), strict=True, path=str(sol))
+
+
+def test_all_branch_fixtures_are_strict_clean():
+    """The targeted fixtures in tests/fixtures/ must also strict-parse."""
+    fixtures = Path(__file__).resolve().parent / "fixtures"
+    files = sorted(fixtures.glob("*.sol"))
+    assert len(files) == 4
+    for sol in files:
+        parse(sol.read_text(), strict=True, path=str(sol))

@@ -32,7 +32,7 @@ jobs:
       - name: Install
         run: pip install -e ".[dev]"
       - name: Test
-        run: pytest
+        run: pytest --cov
       - name: CLI smoke test
         run: |
           asuka --version

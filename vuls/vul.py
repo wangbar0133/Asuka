@@ -45,12 +45,18 @@ class VulTable(dict):
     def count_table(self) -> dict:
         countTable = {3: 0, 2: 0, 1: 0, 0: 0}
         for vuls in self.values():
+            # entries stay None when no file ever ran that detector
+            # (e.g. every file in the scan failed to parse)
+            if vuls is None:
+                continue
             countTable[vuls.risk] += vuls.vul_count()
         return countTable
 
     def vul_count(self) -> int:
         count = 0
         for vuls in self.values():
+            if vuls is None:
+                continue
             count += vuls.vul_count()
         return count
 
@@ -58,6 +64,7 @@ class VulTable(dict):
         vulList = sorted(
                 [
                     vul for vul in self.values()
+                    if vul is not None
                 ],
                 key=lambda x : x.risk,
                 reverse=True

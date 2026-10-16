@@ -67,6 +67,8 @@ class Printer(object):
         Printer.print_blue("Summary:")
         showVulTable.field_names = ["ID", "NAME", "RISK", "NUM"]
         for vulId in vulTable.keys():
+            if vulTable[vulId] is None:
+                continue
             showVulTable.add_row(
                 [
                     "s{}".format(vulId.__str__()),
@@ -97,13 +99,10 @@ class Printer(object):
     @staticmethod
     def _code_snippet(vuls:Vuls):
         for vul in vuls.vul_list:
-            fileName = vul.fileName
             Printer.print_blue("\n{}\n".format(vul.fileName))
             for loc in merge_loc_list(vul.locList):
                 with open(vul.fileName, "r", encoding="utf-8") as f:
                     codeLines = [line.split("\n")[0] for line in f.readlines()]
-                if fileName != vul.fileName:
-                    Printer.print_blue("\n{}".format(vul.fileName))
                 start = loc["start"]["line"]
                 end = loc["end"]["line"]
                 if start == 1:

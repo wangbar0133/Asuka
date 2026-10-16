@@ -1,10 +1,9 @@
-from ast_scanner.ast_scanner import Scanner
+from ast_scanner.ast_scanner import Scanner, Tools
 
 from .detector import Detector
 from .vul import Vul
 
 TOKEN_METHODS = ("transfer", "transferFrom", "safeTransfer", "safeTransferFrom")
-ADDRESS_TYPES = ("address", "address payable")
 
 
 class UncheckedTransfer(Detector):
@@ -25,6 +24,9 @@ class UncheckedTransfer(Detector):
     def check(self, scan: Scanner):
         vul_list: list[Vul] = []
         for contract in scan.contracts:
+            # include state variables inherited from base contracts,
+            # which may live in another file
+            state_vars = contract.resolved_state_vars()
             for function in contract.functions:
                 for statement in function.statements:
                     if statement.type != "ExpressionStatement":
@@ -37,9 +39,10 @@ class UncheckedTransfer(Detector):
                         continue
                     if callee.memberName not in TOKEN_METHODS:
                         continue
-                    if self._base_is_address(callee.expression, function, contract):
-                        # address.transfer(x) / address.send: ether path,
-                        # covered by the unchecked-return-value detector
+                    if self._base_is_address(
+                            callee.expression, function, state_vars):
+                        # address.transfer(x): ether path, covered by the
+                        # unchecked-return-value detector
                         continue
                     vul_list.append(
                         Vul(
@@ -51,7 +54,7 @@ class UncheckedTransfer(Detector):
         return self.result(vul_list)
 
     @staticmethod
-    def _base_is_address(base, function, contract) -> bool:
+    def _base_is_address(base, function, state_vars: dict) -> bool:
         """Best-effort: is the callee receiver an address-typed value?
 
         Unknown bases are treated as non-address (conservative towards
@@ -67,11 +70,8 @@ class UncheckedTransfer(Detector):
                 return True
             declaration = function.functionObject.declarations.get(name)
             if declaration is None:
-                declaration = contract.contractObject.stateVars.get(name)
-            if declaration is not None:
-                type_name = declaration.get("typeName") or {}
-                return type_name.get("name") in ADDRESS_TYPES
-            return False
+                declaration = state_vars.get(name)
+            return UncheckedTransfer._declared_as_address(declaration)
         if base.type == "MemberAccess":
             # msg.sender.transfer(...) is an ether transfer
             inner = base.get("expression")
@@ -87,14 +87,12 @@ class UncheckedTransfer(Detector):
                 root = root["expression"]
             if root.get("type") != "Identifier":
                 return True
-            root_name = root.get("name")
-            declaration = function.functionObject.declarations.get(root_name)
+            declaration = function.functionObject.declarations.get(root.get("name"))
             if declaration is None:
-                declaration = contract.contractObject.stateVars.get(root_name)
+                declaration = state_vars.get(root.get("name"))
             if declaration is None:
                 return True
-            type_name = declaration.get("typeName") or {}
-            return type_name.get("name") in ADDRESS_TYPES
+            return UncheckedTransfer._declared_as_address(declaration)
         if base.type == "FunctionCall":
             # IERC20(token).transfer(...) is a token call, while
             # address(this).transfer(...) / payable(x).transfer(...) are
@@ -109,3 +107,15 @@ class UncheckedTransfer(Detector):
                 return True
             return False
         return False
+
+    @staticmethod
+    def _declared_as_address(declaration) -> bool:
+        """True only for address-typed declarations.
+
+        Everything else (contract/interface types, elementary types,
+        unknown names) is treated as a token-like receiver and reported:
+        for a security scanner the false negative costs more here.
+        """
+        if declaration is None:
+            return False
+        return Tools.is_address_type(declaration)

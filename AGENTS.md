@@ -146,6 +146,13 @@ CLI 入口            core/__main__.py   argparse;core/asuka.py  Asuka 类,multi
   大项目下这是已知的内存/时间权衡。
 - 解析结果单一来源:`Asuka._source_unit_for()` 复用 Project 已解析的 AST,
   不重复 parse。
+- **检测器读状态变量要用 `contract.resolved_state_vars()`**,不要直接用
+  `contract.contractObject.stateVars`——前者含继承自基类(可能在其他文件)的声明。
+  既有经验:s201 曾对继承来的 `address` 变量误报、s107 曾漏报继承来的 mapping 写入。
+- 类型名解析统一走 `Tools.type_name_of()` / `Tools.is_address_type()`
+  (用户定义类型存在 `namePath`,不是 `name`——直接用 `.name` 会静默取到 None)。
+- `Contract.functions` 仍**只含本合约已定义的函数**;继承函数的扫描尚未纳入
+  (直接铺开 `resolved_functions()` 会在同文件多合约时重复上报,需要去重设计)。
 
 ### 代码风格
 

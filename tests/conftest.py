@@ -48,3 +48,43 @@ def scan_fixture():
         return cache[name]
 
     return _scan
+
+
+PROJECT_FIXTURES = FIXTURES / "project"
+
+
+@pytest.fixture(scope="session")
+def scan_in_project():
+    """Scanner for a file under tests/fixtures/project, project attached.
+
+    This is the production path: the cross-file project is loaded so
+    inherited declarations resolve across files.
+    """
+    from core.project import Project
+
+    cache = {}
+
+    def _scan(relative_path: str) -> Scanner:
+        if relative_path not in cache:
+            path = (PROJECT_FIXTURES / relative_path).resolve()
+            project = Project.load([path], root=PROJECT_FIXTURES)
+            tree = parse_file(str(path), loc=True, strict=True)
+            source_unit = objectify(tree, str(path))
+            cache[relative_path] = Scanner(source_unit, project=project)
+        return cache[relative_path]
+
+    return _scan
+
+
+@pytest.fixture(scope="session")
+def scan_without_project():
+    """Scanner for a file under tests/fixtures/project, no project attached."""
+    cache = {}
+
+    def _scan(relative_path: str) -> Scanner:
+        if relative_path not in cache:
+            path = (PROJECT_FIXTURES / relative_path).resolve()
+            cache[relative_path] = Scanner(make_scanner(path).sourceUnitObject)
+        return cache[relative_path]
+
+    return _scan

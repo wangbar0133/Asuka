@@ -94,6 +94,11 @@ asuka contracts/
 #   contracts/A.sol: ./missing/B.sol
 ```
 
+Detectors see inherited declarations: a state variable declared in a base
+contract (even in another file) is recognised when deciding whether a
+`transfer(...)` call is an ether payout or an unchecked token move, and when
+checking for reentrancy writes after an external call.
+
 ## Detectors
 
 Most detectors map to an [SWC](https://swcregistry.io/) entry; detectors without

@@ -307,3 +307,41 @@ class TestDetectorBaseClass:
         result = Sample().result([])
         assert (result.name, result.id, result.risk) == ("Sample", 999, 2)
         assert result.vul_count() == 0
+
+
+# ---------------------------------------------------------------------------
+# Cross-file context: declarations inherited from a base contract in
+# another file. TokenHolder.sol is HolderBase.sol + inherit/TokenHolder.sol
+# where the base declares treasury (address), token (IERC20) and credit
+# (mapping); only the derived file is scanned.
+# ---------------------------------------------------------------------------
+
+TOKEN_HOLDER = "inherit/TokenHolder.sol"
+
+
+class TestCrossFileInheritedDeclarations:
+    def test_inherited_address_receiver_is_not_a_token_transfer(self, scan_in_project):
+        """treasury.transfer is an ether payout, not an unchecked token move.
+
+        Without the project this is a false positive (see the companion
+        test below); the inherited declaration makes the receiver
+        address-typed.
+        """
+        vuls = DETECTORS[201].check(scan_in_project(TOKEN_HOLDER))
+        assert _reported_lines(vuls) == [11]   # token.transfer, NOT treasury.transfer
+
+    def test_without_the_project_the_inherited_address_is_unknown(self, scan_without_project):
+        """Documents the limitation the project removes: 2 findings,
+        one of which (line 7) is a false positive."""
+        vuls = DETECTORS[201].check(scan_without_project(TOKEN_HOLDER))
+        assert _reported_lines(vuls) == [7, 11]
+
+    def test_inherited_state_var_write_after_call_is_reentrancy(self, scan_in_project):
+        """credit[...] is declared in the base file and written after a
+        low-level call - previously invisible, so s107 missed it."""
+        vuls = DETECTORS[107].check(scan_in_project(TOKEN_HOLDER))
+        assert _reported_lines(vuls) == [15, 16]
+
+    def test_without_the_project_the_inherited_write_is_missed(self, scan_without_project):
+        vuls = DETECTORS[107].check(scan_without_project(TOKEN_HOLDER))
+        assert vuls.vul_count() == 0

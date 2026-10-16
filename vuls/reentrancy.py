@@ -24,6 +24,9 @@ to interact in undesirable ways. Or use a reentrancy lock (ie. OpenZeppelin's Re
     def check(self, scan: Scanner):
         vul_list: list[Vul] = []
         for contract in scan.contracts:
+            # include state variables inherited from base contracts, which
+            # may live in another file (resolved through the project)
+            state_vars = contract.resolved_state_vars()
             for function in contract.functions:
                 # view/pure live in stateMutability, not visibility
                 if function.functionObject.stateMutability in ["view", "pure"]:
@@ -48,7 +51,7 @@ to interact in undesirable ways. Or use a reentrancy lock (ie. OpenZeppelin's Re
                     left = expression.left
 
                     if left.type == "IndexAccess":
-                        if left.base.name in contract.contractObject.stateVars.keys():
+                        if left.base.name in state_vars:
                             vul_list.append(
                                 Vul(
                                     fileName=scan.fileName,
@@ -56,7 +59,7 @@ to interact in undesirable ways. Or use a reentrancy lock (ie. OpenZeppelin's Re
                                 )
                             )
                     elif left.type == "Identifier":
-                        if left.name in contract.contractObject.stateVars.keys():
+                        if left.name in state_vars:
                             vul_list.append(
                                 Vul(
                                     fileName=scan.fileName,

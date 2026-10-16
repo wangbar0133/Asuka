@@ -414,6 +414,23 @@ class Tools:
         return list(set(mod_list))
 
     @staticmethod
+    def type_name_of(declaration) -> str | None:
+        """Textual type name of a declaration (variable, parameter, ...).
+
+        Elementary types carry ``name`` (address, uint256); user-defined
+        types carry ``namePath`` (IERC20, MyContract).
+        """
+        if not isinstance(declaration, dict):
+            return None
+        type_name = declaration.get("typeName") or {}
+        return type_name.get("name") or type_name.get("namePath")
+
+    @staticmethod
+    def is_address_type(declaration) -> bool:
+        """True for address / address payable declarations."""
+        return Tools.type_name_of(declaration) in ("address", "address payable")
+
+    @staticmethod
     def iter_nodes(node):
         """Yield node and every AST node nested inside it.
 

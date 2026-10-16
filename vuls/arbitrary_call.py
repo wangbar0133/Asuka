@@ -32,7 +32,8 @@ class ArbitraryCall(Detector):
                 if member.type == "FunctionCall":
                     # IERC20(token).transferFrom(from, address(this), amount);
 
-                    if not member.expression.type == "Identifier":
+                    # payable(x) casts carry a None expression
+                    if not member.expression or not member.expression.type == "Identifier":
                         continue
                     argumens = member.arguments
                     if len(argumens) != 1:

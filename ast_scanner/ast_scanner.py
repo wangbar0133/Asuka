@@ -254,7 +254,14 @@ class Function:
                         self.get_expression(argument)
 
                 else:
+                    # any other callee shape (e.g. the TypeNameExpression
+                    # of an elementary cast like uint8(...)); the call
+                    # itself is not recorded, but its arguments must
+                    # still be visited - calls inside casts used to be
+                    # invisible to the Scanner
                     self.get_expression(expressionObject.expression)
+                    for argument in expressionObject.arguments:
+                        self.get_expression(argument)
 
         elif expressionObject.type == "ExpressionStatement":
             self.get_expression(expressionObject.expression)
@@ -350,3 +357,21 @@ class Tools:
                     mod_list.append(mod)
 
         return list(set(mod_list))
+
+    @staticmethod
+    def iter_nodes(node):
+        """Yield node and every AST node nested inside it.
+
+        Walks raw parser Nodes by their dict values, so any expression
+        shape (binary ops, calls, member accesses, tuples, ...) is
+        covered without enumerating grammar rules.
+        """
+        if not isinstance(node, dict) or "type" not in node:
+            return
+        yield node
+        for value in node.values():
+            if isinstance(value, dict):
+                yield from Tools.iter_nodes(value)
+            elif isinstance(value, list):
+                for item in value:
+                    yield from Tools.iter_nodes(item)

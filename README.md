@@ -140,7 +140,8 @@ python3.11 -m venv .venv
 ```
 
 CI runs lint plus the test suite on Python 3.11–3.14 for every push and pull request.
-See [AGENTS.md](AGENTS.md) for the repository map, conventions, and known pitfalls.
+See [AGENTS.md](AGENTS.md) for the repository map, conventions, and known pitfalls,
+and [CHANGELOG.md](CHANGELOG.md) for the release history.
 
 ## Welcome to pull request
 

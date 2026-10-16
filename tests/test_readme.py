@@ -1,17 +1,20 @@
-"""Keep README.md in sync with the code.
+"""Keep README.md and CHANGELOG.md in sync with the code.
 
-These tests fail when the detector registry or the CLI options change
-without the README being updated - the documentation drift that used to
-go unnoticed.
+These tests fail when the detector registry, the CLI options or the
+package version change without the documentation being updated - the
+documentation drift that used to go unnoticed.
 """
 import re
 from pathlib import Path
 
+from core import __version__
 from core.__main__ import parser
 from vuls.all_detector import ALL_DETECTORS, DETECTOR_IDS
 
 README = Path(__file__).resolve().parent.parent / "README.md"
+CHANGELOG = Path(__file__).resolve().parent.parent / "CHANGELOG.md"
 TEXT = README.read_text(encoding="utf-8")
+CHANGELOG_TEXT = CHANGELOG.read_text(encoding="utf-8")
 
 OPTION_RE = re.compile(r"--?[a-zA-Z][a-zA-Z-]*")
 
@@ -55,3 +58,24 @@ def test_install_and_development_snippets_use_the_dev_extra():
 def test_cross_file_section_is_present():
     assert "## Cross-file scanning" in TEXT
     assert "resolution-only" in TEXT
+
+
+def test_changelog_top_entry_matches_the_package_version():
+    match = re.search(r"^## \[(\d+\.\d+\.\d+)\] - (.+)$", CHANGELOG_TEXT, re.M)
+    assert match, "CHANGELOG.md has no '## [x.y.z] - date' heading"
+    assert match.group(1) == __version__, (
+        f"CHANGELOG top entry {match.group(1)} != package version {__version__}"
+    )
+    assert match.group(2).strip() != "unreleased", (
+        "the CHANGELOG top entry still says 'unreleased'"
+    )
+
+
+def test_changelog_documents_every_detector_id():
+    documented = set(re.findall(r"`(?:SWC-)?(\d+)`", CHANGELOG_TEXT))
+    missing = {str(vul_id) for vul_id in DETECTOR_IDS} - documented
+    assert not missing, f"detector ids missing from CHANGELOG: {sorted(missing)}"
+
+
+def test_readme_links_the_changelog():
+    assert "[CHANGELOG.md](CHANGELOG.md)" in TEXT

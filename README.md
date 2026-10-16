@@ -1,13 +1,16 @@
 # Asuka
 
-You can use auska to detect any solidity file to find defects. It's base on python3 and antlr4.
+You can use Asuka to detect defects in any Solidity file. It's based on Python 3.11+ and antlr4.
 
 ## How to install
+
+Requires Python 3.11 or newer.
 
 ```shell
 git clone git@github.com:wangbar0133/Asuka.git
 cd Asuka
-python setup.py install
+python3.11 -m venv .venv
+.venv/bin/pip install -e .
 ```
 
 ## How to use
@@ -86,8 +89,24 @@ All detectors are base on SWC.
 | SWC-109     | Access of Uninitialized Pointer |
 | SWC-112     | Delegatecall to Untrusted Callee|
 | SWC-115     | Authorization through tx.origin |
+| SWC-137     | Arbitrary calls                 |
+| SWC-138     | msg.value in loop               |
 
 More Smart Contract Weakness: <https://swcregistry.io/>
+
+## Development
+
+```shell
+python3.11 -m venv .venv
+.venv/bin/pip install -e ".[dev]"
+
+.venv/bin/pytest            # run the test suite
+.venv/bin/ruff check .      # lint
+.venv/bin/asuka test_data/  # try the scanner on the bundled samples
+```
+
+CI runs lint plus the test suite on Python 3.11–3.14 for every push and pull request.
+See [AGENTS.md](AGENTS.md) for the repository map, conventions, and known pitfalls.
 
 ## Welcome to pull request
 

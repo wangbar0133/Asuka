@@ -1,12 +1,16 @@
 import argparse
+import logging
 
-from .printer import Printer
-from .asuka import Asuka
-from .utils import check_address
 from vuls import all_detector
 
+from . import __version__
+from .asuka import Asuka
+from .printer import Printer
+from .utils import check_address
+
+
 class ListAllDetectors(argparse.Action):
-    
+
     def __call__(self, parser, *args, **kwargs):
         Printer.print_blue("Find {} detectors:".format(len(allDetectorList)))
         Printer.print_detectors(allDetectorList, allDetectorTable)
@@ -27,7 +31,7 @@ allDetectorList.sort()
 parser = argparse.ArgumentParser()
 
 parser.add_argument("path", help="Folders or solidity files or address.")
-parser.add_argument("--version",version="0.2.0", action="version", help="Show current version")
+parser.add_argument("--version",version=__version__, action="version", help="Show current version")
 parser.add_argument("-k", "--apikey", help="Api key")
 parser.add_argument("-c", "--chain", help="chain type")
 
@@ -35,16 +39,16 @@ groupCheckList = parser.add_argument_group("Check List")
 groupDetect = parser.add_argument_group("Detect")
 
 groupCheckList.add_argument(
-    "-d", "--detector", 
+    "-d", "--detector",
     action=ListAllDetectors,
     nargs=0,
-    help="Show all detectors", 
+    help="Show all detectors",
     default=False
 )
 groupDetect.add_argument("-i", "--include", help="Specify the detector")
 groupDetect.add_argument("-e", "--exclude", help="Exclusion detector")
 groupDetect.add_argument("-t", "--thread", help="Number of threads")
- 
+
 def parse_vuls_string(s) -> list:
     """
         This function can parse the input vuls string.
@@ -69,9 +73,16 @@ def parse_vuls_string(s) -> list:
     return vuls
 
 def main():
+    logging.basicConfig(
+        filename="debug.log",
+        filemode="w",
+        format="%(asctime)s %(name)s:%(levelname)s:%(message)s",
+        datefmt="%d-%m-%Y %H:%M:%S",
+        level=logging.DEBUG
+    )
     args = parser.parse_args()
     Printer.print_banner()
-        
+
     if args.path:
         root = args.path
         if args.include:
@@ -80,12 +91,12 @@ def main():
             detectors = sorted(list(set(allDetectorList) - set(parse_vuls_string(args.exclude))))
         else:
             detectors = allDetectorList
-        
+
         if args.thread:
             thread = int(args.thread)
         else:
             thread = 4
-        
+
         if check_address(root):
             if not args.apikey:
                 Printer.print_red("No API Keys!")
@@ -98,16 +109,20 @@ def main():
         else:
             apiKey = None
             chainType = None
-        
+
         # Create a Asuka object
         asuka = Asuka(_root=root, _detectors=detectors, _threads=thread, _chainType=chainType,_apiKey=apiKey)
         Printer.print_files(asuka.allSolFiles)
         Printer.print_blue("Check list:")
         Printer.print_detectors(detectors, allDetectorTable)
         # Printer.print_yellow("Antlr4 warn:")
-        
+
         # Start scan task
         asuka.scan()
         Printer.print_green("\n\n--------------------------Finsh--------------------------\n")
         Printer.print_summary(asuka.vulTable)
         Printer.print_vul_table(asuka.vulTable)
+
+
+if __name__ == "__main__":
+    main()

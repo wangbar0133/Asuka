@@ -1,34 +1,38 @@
-BANNER = r"""
-
- ______                   __                  
-/\  _  \                 /\ \                 
-\ \ \L\ \    ____  __  __\ \ \/'\      __     
- \ \  __ \  /',__\/\ \/\ \\ \ , <    /'__`\   
-  \ \ \/\ \/\__, `\ \ \_\ \\ \ \\`\ /\ \L\.\_ 
-   \ \_\ \_\/\____/\ \____/ \ \_\ \_\ \__/.\_\
-    \/_/\/_/\/___/  \/___/   \/_/\/_/\/__/\/_/
-                                              
-    version 0.2.0                                           
-                            
-    Extremely Fast Contract Defect Detectors
-    https://github.com/wangbar0133/Asuka
-                                       
-
-"""
 import prettytable
 
-from vuls.vul import Risk, VulTable, Vul, Vuls
+from vuls.vul import Risk, Vuls, VulTable
+
+from . import __version__
 from .utils import merge_loc_list
+
+BANNER = r"""
+
+ ______                   __
+/\  _  \                 /\ \
+\ \ \L\ \    ____  __  __\ \ \/'\      __
+ \ \  __ \  /',__\/\ \/\ \\ \ , <    /'__`\
+  \ \ \/\ \/\__, `\ \ \_\ \\ \ \\`\ /\ \L\.\_
+   \ \_\ \_\/\____/\ \____/ \ \_\ \_\ \__/.\_\
+    \/_/\/_/\/___/  \/___/   \/_/\/_/\/__/\/_/
+
+    version {version}
+
+    Extremely Fast Contract Defect Detectors
+    https://github.com/wangbar0133/Asuka
+
+
+"""
+
 
 class Printer(object):
     """
         A class to print info on cli.
     """
-    
+
     @staticmethod
     def print_banner():
-        print(Color.RED + BANNER + Color.END)
-        
+        print(Color.RED + BANNER.format(version=__version__) + Color.END)
+
     @staticmethod
     def print_detectors(allDetectorList:list, allDetectorTable:VulTable):
         detectorTable = prettytable.PrettyTable()
@@ -36,21 +40,21 @@ class Printer(object):
         for vulId in allDetectorList:
             detectorTable.add_row(
                 [
-                    "s{}".format(vulId.__str__()), 
-                    allDetectorTable[vulId].NAME, 
+                    "s{}".format(vulId.__str__()),
+                    allDetectorTable[vulId].NAME,
                     Risk[allDetectorTable[vulId].RISK]
                 ]
             )
         print(detectorTable)
         print("\n")
-    
+
     @staticmethod
     def print_files(paths:list):
         Printer.print_blue("{} solidity contract files were found".format(len(paths).__str__()))
         for path in paths:
-            Printer.print_green(path) 
-        print("\n")   
-    
+            Printer.print_green(path)
+        print("\n")
+
     @staticmethod
     def print_summary(vulTable:VulTable):
         countTable = vulTable.count_table()
@@ -65,22 +69,23 @@ class Printer(object):
         for vulId in vulTable.keys():
             showVulTable.add_row(
                 [
-                    "s{}".format(vulId.__str__()), 
-                    vulTable[vulId].name, 
+                    "s{}".format(vulId.__str__()),
+                    vulTable[vulId].name,
                     Risk[vulTable[vulId].risk],
                     vulTable[vulId].vul_count()
                 ]
             )
         print(showVulTable)
         print("\n")
-        
+
     @staticmethod
     def print_vul_table(vulTable: VulTable):
         vulList = vulTable.sort_by_risk()
         for vul in vulList:
-            if len(vul.vul_list) == 0: continue
+            if len(vul.vul_list) == 0:
+                continue
             Printer.print_risk_color(
-                text="s" + str(vul.id) + ":" + vul.name, 
+                text="s" + str(vul.id) + ":" + vul.name,
                 risk=vul.risk
             )
             print("Descreibe: {}".format(vul.descreibe))
@@ -88,7 +93,7 @@ class Printer(object):
             print("Detail: https://swcregistry.io/docs/SWC-{}\n".format(str(vul.id)))
             Printer._code_snippet(vul)
             print("\n")
-        
+
     @staticmethod
     def _code_snippet(vuls:Vuls):
         for vul in vuls.vul_list:
@@ -97,12 +102,13 @@ class Printer(object):
             for loc in merge_loc_list(vul.locList):
                 with open(vul.fileName, "r", encoding="utf-8") as f:
                     codeLines = [line.split("\n")[0] for line in f.readlines()]
-                if fileName != vul.fileName: Printer.print_blue("\n{}".format(vul.fileName))
+                if fileName != vul.fileName:
+                    Printer.print_blue("\n{}".format(vul.fileName))
                 start = loc["start"]["line"]
                 end = loc["end"]["line"]
-                if start == 1: 
-                    top = 0 
-                else: 
+                if start == 1:
+                    top = 0
+                else:
                     top = start -2
                 if end > len(codeLines):
                     bottom = len(codeLines)
@@ -119,7 +125,7 @@ class Printer(object):
     @staticmethod
     def print_file_num(num:int):
         print("Contract files: " + Color.GREEN + str(num) + Color.END)
-        
+
     def print_risk_color(text:str, risk:int):
         if risk == 0:
             print(text)
@@ -129,10 +135,10 @@ class Printer(object):
             Printer.print_yellow(text)
         elif risk == 3:
             Printer.print_red(text)
-    
+
     @staticmethod
     def print_green(text):
-        print(Color.GREEN + str(text) + Color.END)  
+        print(Color.GREEN + str(text) + Color.END)
 
     @staticmethod
     def print_red(text):
@@ -141,7 +147,7 @@ class Printer(object):
     @staticmethod
     def print_blue(text):
         print(Color.BLUE + str(text) + Color.END)
-        
+
     @staticmethod
     def print_yellow(text):
         print(Color.YELLOW + str(text) + Color.END)

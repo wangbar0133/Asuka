@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Asuka"
+description = "An extremely fast Solidity contract defect detector"
+readme = "README.md"
+license = { text = "GPL-3.0" }
+authors = [{ name = "neicun" }]
+requires-python = ">=3.11"
+dynamic = ["version"]
+dependencies = [
+    "antlr4-python3-runtime==4.9.2",
+    "prettytable>=3.9",
+    "requests>=2.31",
+]
+
+[project.urls]
+Homepage = "https://github.com/wangbar0133/Asuka"
+
+[project.scripts]
+asuka = "core.__main__:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[tool.setuptools.packages.find]
+include = [
+    "ast_scanner*",
+    "core*",
+    "scraper*",
+    "solidity_antlr4_parser*",
+    "vuls*",
+]
+
+[tool.setuptools.dynamic]
+version = { attr = "core.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+# ANTLR-generated code is vendored; never hand-edit or lint it.
+extend-exclude = [
+    "solidity_antlr4_parser/SolidityLexer.py",
+    "solidity_antlr4_parser/SolidityListener.py",
+    "solidity_antlr4_parser/SolidityParser.py",
+    "solidity_antlr4_parser/SolidityVisitor.py",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B"]
+# Long DESCREIBE/ADVICE strings exceed any sane line length; reflowing them
+# is tracked as a follow-up cleanup, not a lint failure.
+ignore = ["E501"]

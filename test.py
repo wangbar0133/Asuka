@@ -5,7 +5,7 @@ class TestScanner(unittest.TestCase):
     def test_ast_scanner(self):
         from solidity_antlr4_parser.parser import parse_file, objectify
         from ast_scanner.ast_scanner import Scanner
-        path = "/Users/wang/dev/Asuka/test_data/test.sol"
+        path = "test_data/test.sol"
         source_unit = parse_file(path, loc=True)
         source_unit_object = objectify(source_unit, path)
         scanner = Scanner(source_unit_object)

@@ -1,39 +1,39 @@
-# How make a new detector
+# How to make a new detector
 
 Templates:
 
 ```python
 from ast_scanner.ast_scanner import Scanner
-from .vul import Vul, Vuls
 
-NAME = ""
+from .detector import Detector
+from .vul import Vul
 
-ID = 0
 
-DESCREIBE = ""
+class MyDetector(Detector):
+    NAME = ""
 
-ADVICE = ""
+    ID = 0  # SWC id, see https://swcregistry.io/
 
-RISK = 0
+    DESCRIPTION = ""
 
-def check(scan: Scanner):
-    vul_list = list()
-    
-    return Vuls(
-            name=NAME,
-            id=ID,
-            descreibe=DESCREIBE,
-            advice=ADVICE,
-            risk=RISK,
-            vulList=vul_list
-        )
-    
+    ADVICE = ""
+
+    RISK = 0  # 0=Info, 1=Low, 2=Medium, 3=High
+
+    def check(self, scan: Scanner):
+        vul_list: list[Vul] = []
+
+        return self.result(vul_list)
 ```
 
 You can operate the Scanner object to find vuls.
-Check the int_overflow.py to get more info.
+Check int_overflow.py for a simple example, reentrancy.py for a bigger one.
 
-Find a new smart contract weakness in <https://swcregistry.io/>
-Fill in the NAME, ID, DESCREIBE by <https://swcregistry.io/> or yourself.
-Complete the check function.
-import this module in all_detector.py.
+Then register it in vuls/all_detector.py:
+
+1. import your class,
+2. add it to DETECTOR_CLASSES.
+
+Find a new smart contract weakness in <https://swcregistry.io/>,
+fill in NAME / ID / DESCRIPTION / ADVICE / RISK, implement check(),
+and add expectations to tests/test_detectors.py (EXPECTED_IDS + EXPECTED).

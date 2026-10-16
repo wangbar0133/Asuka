@@ -58,14 +58,16 @@ CLI 入口            core/__main__.py   argparse;core/asuka.py  Asuka 类,multi
 
 ### 检测器插件协议
 
-`vuls/` 下每个检测器模块暴露模块级常量 + 一个 `check(scan: Scanner) -> Vuls` 函数:
+`vuls/` 下每个检测器模块定义一个 `Detector` 子类(基类在 `vuls/detector.py`):
 
-- `NAME` / `ID`(SWC 编号)/ `DESCREIBE` / `ADVICE` / `RISK`(0=Info, 1=Low, 2=Medium, 3=High)
-- 新检测器必须在 `vuls/all_detector.py` 追加导入(该文件靠 import 副作用注册,有 `# noqa: F401`,勿删)
+- 类属性:`NAME` / `ID`(SWC 编号)/ `DESCRIPTION` / `ADVICE` / `RISK`(0=Info, 1=Low, 2=Medium, 3=High)
+- 实现 `check(self, scan: Scanner) -> Vuls`,返回值用 `self.result(vul_list)` 构造
+- 新检测器:创建 `vuls/<name>.py`,然后在 `vuls/all_detector.py` 的
+  `DETECTOR_CLASSES` 列表注册(注册表是唯一发现机制,不要在别处重新实现)
 - 模板见 `vuls/templates.py` 和 `vuls/README.md`
 
-注意:`DESCREIBE`/`METHED` 是历史拼写错误,为保持公开接口兼容暂不改名,
-优化路线里有统一重命名一项。
+历史拼写(`DESCREIBE`/`METHED`)已在 0.3.0 统一修正为
+`DESCRIPTION`/`METHODS`;旧脚本以 0.2.x 为兼容边界。
 
 ### 测试即行为基线
 
@@ -118,3 +120,10 @@ CLI 入口            core/__main__.py   argparse;core/asuka.py  Asuka 类,multi
 - `vuls/utils.py:check_solc_version` 支持 `||` 复合 pragma(任一段低于目标版本
   即触发),但仍不处理 `solidity` 关键字前缀等非常规格式。
 - ANTLR 运行时钉死在 `antlr4-python3-runtime==4.9.2`,升级需要重新生成 parser(见优化路线)。
+
+### 代码风格
+
+- Python 3.11+ 语法(`X | None`、内置泛型);公开函数和方法带类型注解。
+- ruff 规则集 E/F/W/I/B/UP 在 CI 强制;字符串拼接用 f-string。
+- AST 节点(parser `Node` / scanner `Expression`)是动态 dict,
+  属性访问可能返回 None 或抛 KeyError——防御性判断用 dict 接口(`.get`/`in`)。

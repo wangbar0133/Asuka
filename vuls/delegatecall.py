@@ -33,7 +33,10 @@ def check(scan: Scanner):
         for functionCall in function.functionCalls:
             if functionCall.name != "delegatecall":
                 continue
-            if not hasattr(functionCall, "expression"):
+            # Expression dicts return None for missing keys (their
+            # __getattr__ never raises), so hasattr() is always True
+            # here - test for a real callee expression instead.
+            if not functionCall.expression:
                 continue
             address = functionCall.expression.name
             if address in function.functionObject.declarations.keys():

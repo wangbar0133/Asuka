@@ -21,6 +21,10 @@ def check(scan: Scanner):
         for functionCall in function.functionCalls:
             if functionCall.name != "require":
                 continue
+            # require() may carry no arguments; arguments[0] used to
+            # raise IndexError and kill the whole scan
+            if not functionCall.arguments:
+                continue
             argument = functionCall.arguments[0]
             if check_require(argument):
                 vul_list.append(

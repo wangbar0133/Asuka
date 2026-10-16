@@ -10,7 +10,7 @@ contract MyContract {
 
     function sendTo(address receiver, uint amount) public {
         require(tx.origin == owner);
-        require(tx.origin != msg.sender)
+        require(tx.origin != msg.sender);
         receiver.transfer(amount);
     }
 

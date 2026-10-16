@@ -6,6 +6,7 @@
 #
 
 from antlr4 import *  # noqa: F403
+from antlr4.error.ErrorListener import ErrorListener
 
 from .SolidityLexer import SolidityLexer
 from .SolidityParser import SolidityParser
@@ -1662,9 +1663,12 @@ def objectify(start_node, file_name=None):
 
                 def __init__(self, node):
                     self.node = node
-                    if(node.type=="FunctionDefinition"):
-                        self.visibility = node.visibility
-                        self.stateMutability = node.stateMutability
+                    # Node is a dict subclass; .get() keeps these defined
+                    # (None) for node types without visibility, e.g.
+                    # ModifierDefinition, so detectors can rely on the
+                    # attribute always existing.
+                    self.visibility = node.get("visibility")
+                    self.stateMutability = node.get("stateMutability")
                     self.arguments = {}
                     self.returns = {}
                     self.declarations = {}
@@ -1787,6 +1791,22 @@ def parse_file(path, start="sourceUnit", loc=False, strict=False):
         return parse(f.read(), start=start, loc=loc, strict=strict, path=path)
 
 
+class CountingErrorListener(ErrorListener):
+    """Silently counts lexer/parser syntax errors.
+
+    The default ANTLR console listener is removed so scans stay quiet;
+    this listener keeps a count so strict mode can reject broken files
+    instead of silently producing an empty AST.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.count = 0
+
+    def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+        self.count += 1
+
+
 def parse(text, start="sourceUnit", loc=False, strict=False, path=None):
     from antlr4 import CommonTokenStream
     from antlr4.InputStream import InputStream
@@ -1795,11 +1815,27 @@ def parse(text, start="sourceUnit", loc=False, strict=False, path=None):
 
     lexer = SolidityLexer(input_stream)
     lexer.removeErrorListeners()
+    lexer_errors = CountingErrorListener()
+    lexer.addErrorListener(lexer_errors)
+
     token_stream = CommonTokenStream(lexer)
     parser = SolidityParser(token_stream)
     parser.removeErrorListeners()
+    parser_errors = CountingErrorListener()
+    parser.addErrorListener(parser_errors)
+
     ast = AstVisitor(file_path=path)
 
     Node.ENABLE_LOC = loc
 
-    return ast.visit(getattr(parser, start)())
+    tree = ast.visit(getattr(parser, start)())
+
+    if strict and (lexer_errors.count or parser_errors.count):
+        name = path if path else "<text>"
+        raise SyntaxError(
+            "{} syntax error(s) in {}".format(
+                lexer_errors.count + parser_errors.count, name
+            )
+        )
+
+    return tree

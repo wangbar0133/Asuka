@@ -43,6 +43,7 @@ class Asuka(object):
         self.allSolFiles = self._get_all_sol_files(_root)
         self.vulList = list()
         self.vulTable = VulTable(_detectors)
+        self.errors = list()
 
     def _is_sol_file(self, path:str) -> bool:
         """check the file of path is solidity file.
@@ -83,9 +84,16 @@ class Asuka(object):
             scraper = Scraper(chainType=self.chainType, apiKey=self.apiKey)
             path = scraper.get_source_code(address=path)
 
+        if not os.path.exists(path):
+            raise ValueError("Path not found: {}".format(path))
+
         if path[-4:] == ".sol":
             if self._is_sol_file(path):
                 return [path]
+            raise ValueError("Invalid or empty solidity file: {}".format(path))
+
+        if os.path.isfile(path):
+            raise ValueError("Not a solidity file: {}".format(path))
 
         if path[-1] != "/":
             path += "/"
@@ -105,7 +113,7 @@ class Asuka(object):
         return len(self.allSolFiles)
 
     def vul_count(self) -> int:
-        return len(self.vulList)
+        return self.vulTable.vul_count()
 
     def scan_file(self, param:tuple[str, list]) -> list:
         """Scan a single solidity file.
@@ -123,7 +131,7 @@ class Asuka(object):
                 parse solidity source code to an AST object
                 by using solidity_antlr4_parser module.
             """
-            sourceUnit = parse_file(path=solFilePath, loc=True)
+            sourceUnit = parse_file(path=solFilePath, loc=True, strict=True)
             sourceUnitObject = objectify(sourceUnit, file_name=solFilePath)
         except Exception as e:
             logging.info("Parse file failed: {}".format(solFilePath))
@@ -158,19 +166,40 @@ class Asuka(object):
         return vulList
 
 
+    def _scan_file_isolated(self, param: tuple[str, list]) -> tuple:
+        """Run scan_file, converting any failure into an error report.
+
+        A single broken file must never abort the whole scan; failures
+        are collected into scan results and surfaced by Asuka.errors.
+
+        Args:
+            param (tuple[str, list]): same signature as scan_file.
+
+        Returns:
+            tuple: (vulList, None) on success, (None, errorMessage) on failure.
+        """
+        try:
+            return self.scan_file(param), None
+        except Exception as e:
+            return None, "{}: {}".format(param[0], e)
+
     def scan(self):
         """
             Asuka class main methed to detect vuls by multi threaded.
         """
         pool = Pool(processes=self.thread)
-        vulLists = pool.map(
-            self.scan_file,
+        results = pool.map(
+            self._scan_file_isolated,
             [(solFilePath, self.detectors) for solFilePath in self.allSolFiles]
         )
         pool.close()
         pool.join()
 
-        for vulList in vulLists:
+        self.errors = list()
+        for vulList, error in results:
+            if error is not None:
+                self.errors.append(error)
+                continue
             for vul in vulList:
                 self.vulTable += vul
 

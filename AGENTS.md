@@ -70,6 +70,10 @@ CLI 入口            core/__main__.py   argparse;core/asuka.py  Asuka 类,multi
 **精确发现数**。改变检测器逻辑时必须在同一提交里更新对应期望值,并说明原因。
 新增检测器时同步更新 `EXPECTED_IDS` 和 `EXPECTED`。
 
+检测器统一通过 `function.functionObject.visibility` 读取可见性(不要用
+`.node.visibility`,两条路径历史上混用过;FunctionObject 现在保证该属性总是存在,
+缺失时为 None)。
+
 ### 版本号
 
 唯一来源是 `core/__init__.py` 的 `__version__`,pyproject.toml 通过
@@ -91,7 +95,11 @@ CLI 入口            core/__main__.py   argparse;core/asuka.py  Asuka 类,multi
 
 - `multiprocessing.Pool` 在 macOS 用 spawn 启动子进程,`Asuka` 实例会被 pickle,
   实例属性必须保持可 pickle。
-- `scan_file` 里任何一个文件解析失败都会 `raise RuntimeError` 使整个扫描中止
-  (优化路线里计划改为跳过并汇总报告)。
-- `vuls/utils.py:check_solc_version` 只处理单版本 pragma,不支持 `||` 多段声明。
+- 解析失败或检测器崩溃的文件不会中止扫描:失败被隔离进 `Asuka.errors`
+  (每项为 `"路径: 错误信息"`),CLI 末尾统一红色报告,退出码仍为 0。
+- Asuka 核心使用 **strict 解析**(`parse_file(..., strict=True)`):含语法错误的
+  文件直接判失败,而不是静默产出空 AST 漏检。因此 `test_data/` 夹具必须保持
+  严格可解析(`tests/test_parser.py` 有专门守卫)。
+- `vuls/utils.py:check_solc_version` 支持 `||` 复合 pragma(任一段低于目标版本
+  即触发),但仍不处理 `solidity` 关键字前缀等非常规格式。
 - ANTLR 运行时钉死在 `antlr4-python3-runtime==4.9.2`,升级需要重新生成 parser(见优化路线)。

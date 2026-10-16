@@ -120,6 +120,11 @@ def main():
         # Start scan task
         asuka.scan()
         Printer.print_green("\n\n--------------------------Finsh--------------------------\n")
+        if asuka.errors:
+            Printer.print_red("{} file(s) failed to scan:".format(len(asuka.errors)))
+            for error in asuka.errors:
+                print("  {}".format(error))
+            print("\n")
         Printer.print_summary(asuka.vulTable)
         Printer.print_vul_table(asuka.vulTable)
 

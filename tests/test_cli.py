@@ -1,4 +1,5 @@
 """CLI-layer tests: argument parsing helpers and an end-to-end subprocess run."""
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -57,3 +58,15 @@ def test_cli_scan_with_include_filter():
     assert result.returncode == 0
     assert "3 vuls were found" in result.stdout
     assert "Int Overflow" not in result.stdout
+
+
+def test_cli_reports_broken_files_without_aborting(tmp_path):
+    (tmp_path / "broken.sol").write_text("this is not solidity {{{ !!!")
+    shutil.copy(REPO_ROOT / "test_data" / "reentrancy.sol", tmp_path / "clean.sol")
+
+    result = _run_cli(str(tmp_path))
+    assert result.returncode == 0
+    # clean.sol findings still reported: 2x s101 + 3x s107
+    assert "5 vuls were found" in result.stdout
+    assert "1 file(s) failed to scan" in result.stdout
+    assert "broken.sol" in result.stdout

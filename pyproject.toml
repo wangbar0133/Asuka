@@ -1,12 +1,13 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "Asuka"
 description = "An extremely fast Solidity contract defect detector"
 readme = "README.md"
-license = { text = "GPL-3.0" }
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
 authors = [{ name = "neicun" }]
 requires-python = ">=3.11"
 dynamic = ["version"]

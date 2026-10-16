@@ -27,7 +27,8 @@ def check(scan: Scanner):
     vul_list = list()
     for contract in scan.contracts:
         for function in contract.functions:
-            if function.functionObject.visibility in ["view", "pure"]:
+            # view/pure live in stateMutability, not visibility
+            if function.functionObject.stateMutability in ["view", "pure"]:
                 continue
             if "nonReentrant" in function.modifiers:
                 continue

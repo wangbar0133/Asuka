@@ -18,7 +18,8 @@ def check(scan: Scanner):
         # the function should be call by external and none admin
         if function.functionObject.visibility not in ["default", "public", "external"]:
             continue
-        if function.functionObject.visibility in ["view", "pure"]:
+        # view/pure live in stateMutability, not visibility
+        if function.functionObject.stateMutability in ["view", "pure"]:
             continue
         if Tools.check_modifier(function.functionObject, ["onlyOwner", "onlyGov", "onlyAdmin"]):
             continue

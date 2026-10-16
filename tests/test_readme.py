@@ -79,3 +79,17 @@ def test_changelog_documents_every_detector_id():
 
 def test_readme_links_the_changelog():
     assert "[CHANGELOG.md](CHANGELOG.md)" in TEXT
+
+
+def test_release_notes_exist_for_the_current_version():
+    """A release needs reader-facing notes, not just a changelog entry."""
+    notes = (
+        Path(__file__).resolve().parent.parent
+        / ".github" / "release-notes" / f"v{__version__}.md"
+    )
+    assert notes.is_file(), f"missing release notes for v{__version__}"
+    text = notes.read_text(encoding="utf-8")
+    assert __version__ in text
+    documented = set(re.findall(r"`(?:SWC-)?(\d+)`", text))
+    missing = {str(vul_id) for vul_id in DETECTOR_IDS} - documented
+    assert not missing, f"detector ids missing from the release notes: {sorted(missing)}"

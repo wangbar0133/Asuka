@@ -16,9 +16,9 @@ def check(scan: Scanner):
     vul_list = list()
     for function in scan.functions:
         # the function should be call by external and none admin
-        if function.functionObject.node.visibility not in ["default", "public", "external"]:
+        if function.functionObject.visibility not in ["default", "public", "external"]:
             continue
-        if function.functionObject.node.visibility in ["view", "pure"]:
+        if function.functionObject.visibility in ["view", "pure"]:
             continue
         if Tools.check_modifier(function.functionObject, ["onlyOwner", "onlyGov", "onlyAdmin"]):
             continue

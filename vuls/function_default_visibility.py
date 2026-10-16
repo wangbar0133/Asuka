@@ -15,7 +15,7 @@ RISK = 2
 def check(scan: Scanner):
     vul_list = list()
     for function in scan.functions:
-        if function.functionObject.node.visibility == "default":
+        if function.functionObject.visibility == "default":
             vul_list.append(
                 Vul(
                     fileName=scan.fileName,

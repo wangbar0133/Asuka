@@ -43,6 +43,28 @@ class TestCheckSolcVersion:
     def test_solc_8_or_newer(self, pragma):
         assert not check_solc_version(pragma, 8)
 
+    @pytest.mark.parametrize(
+        "pragma",
+        [
+            "^0.4.16 || ^0.5.0",   # any segment below 8 -> detect
+            "^0.8.0 || ^0.4.16",   # order must not matter
+            "0.4.24 || 0.8.0",
+        ],
+    )
+    def test_compound_pragma_below_solc_8(self, pragma):
+        assert check_solc_version(pragma, 8)
+
+    @pytest.mark.parametrize(
+        "pragma",
+        [
+            "^0.8.0 || ^0.9.0",
+            "0.8.0 || 0.9.0",
+            ">=0.8.0 || ^0.9.0",
+        ],
+    )
+    def test_compound_pragma_solc_8_or_newer(self, pragma):
+        assert not check_solc_version(pragma, 8)
+
     def test_garbage_input_is_safe(self):
         assert not check_solc_version("", 8)
         assert not check_solc_version("solidity", 8)
@@ -53,6 +75,9 @@ def _loc(start, end):
 
 
 class TestMergeLocList:
+    def test_empty_list_is_safe(self):
+        assert merge_loc_list([]) == []
+
     def test_nearby_lines_are_merged(self):
         merged = merge_loc_list([_loc(10, 10), _loc(12, 12)])
         assert len(merged) == 1

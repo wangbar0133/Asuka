@@ -5,7 +5,7 @@
 # derived from https://github.com/federicobond/solidity-parser-antlr/
 #
 
-from antlr4 import *
+from antlr4 import *  # noqa: F403
 
 from .SolidityLexer import SolidityLexer
 from .SolidityParser import SolidityParser
@@ -28,13 +28,13 @@ class Node(dict):
 
     def __getattr__(self, item):
         return self[item]
-     
+
     def __hasattr__(self, item):
         if item in self.keys():
             return True
         else:
-            False        
-            
+            return False
+
     def __setattr__(self, name, value):
         self[name] = value
 
@@ -50,14 +50,14 @@ class Node(dict):
                 'column': ctx.stop.column
             }
         }
-        
-        
+
+
 class AstVisitor(SolidityVisitor):
-    
+
     def __init__(self, file_path):
         self.file_path = file_path
-    
-    
+
+
     def _mapCommasToNulls(self, children):
         if not children or len(children) == 0:
             return []
@@ -86,7 +86,7 @@ class AstVisitor(SolidityVisitor):
     def _createNode(self, **kwargs):
         ## todo: add loc!
         return Node(**kwargs)
-    
+
     def visit(self, tree):
         """
         override the default visit to optionally accept a range of children nodes
@@ -133,7 +133,7 @@ class AstVisitor(SolidityVisitor):
     # ********************************************************
     #   pragmaDirective
     #   : 'pragma' pragmaName pragmaValue ';' ;
-    
+
     def visitPragmaDirective(self, ctx: SolidityParser.PragmaDirectiveContext):
         return Node(
             ctx=ctx,
@@ -148,7 +148,7 @@ class AstVisitor(SolidityVisitor):
     #   : 'import' StringLiteralFragment ('as' identifier)? ';'
     #   | 'import' ('*' | identifier) ('as' identifier)? 'from' StringLiteralFragment ';'
     #   | 'import' '{' importDeclaration ( ',' importDeclaration )* '}' 'from' StringLiteralFragment ';' ;
-    
+
     def visitImportDirective(self, ctx: SolidityParser.ImportDirectiveContext):
         symbol_aliases = {}
         unit_alias = None
@@ -159,7 +159,7 @@ class AstVisitor(SolidityVisitor):
 
                 try:
                     alias = item.identifier(1).getText()
-                except:
+                except Exception:
                     alias = None
                 symbol_aliases[item.identifier(0).getText()] = alias
 
@@ -170,10 +170,10 @@ class AstVisitor(SolidityVisitor):
         elif len(ctx.children) == 5:
             unit_alias = ctx.getChild(3).getText()
             path = ctx.children[1].getText()
-            
+
         elif len(ctx.children) == 3:
             path = ctx.children[1].getText()
-            
+
         return Node(
             ctx=ctx,
             type="ImportDirective",
@@ -188,7 +188,7 @@ class AstVisitor(SolidityVisitor):
     #   : 'abstract'? ( 'contract' | 'interface' | 'library' ) identifier
     #   ( 'is' inheritanceSpecifier (',' inheritanceSpecifier )* )?
     #   '{' contractPart* '}' ;
-    
+
     def visitContractDefinition(self, ctx: SolidityParser.ContractDefinitionContext):
         self._currentContract = ctx.identifier().getText()
         return Node(
@@ -208,13 +208,13 @@ class AstVisitor(SolidityVisitor):
     #   | functionDefinition
     #   | eventDefinition
     #   | enumDefinition ;
-    
+
     # ********************************************************
     #     stateVariableDeclaration
     #   : typeName
     #     ( PublicKeyword | InternalKeyword | PrivateKeyword | ConstantKeyword | ImmutableKeyword | overrideSpecifier )*
     #     identifier ('=' expression)? ';' ;
-    
+
     def visitStateVariableDeclaration(self, ctx: SolidityParser.StateVariableDeclarationContext):
         type = self.visit(ctx.typeName())
         iden = ctx.identifier()
@@ -261,7 +261,7 @@ class AstVisitor(SolidityVisitor):
     # ********************************************************
     # usingForDeclaration
     #   : 'using' identifier 'for' ('*' | typeName) ';' ;
-    
+
     def visitUsingForDeclaration(self, ctx: SolidityParser.UsingForDeclarationContext):
         typename = None
         if ctx.getChild(3) != '*':
@@ -273,13 +273,13 @@ class AstVisitor(SolidityVisitor):
             typeName=typename,
             libraryName=ctx.identifier().getText()
         )
-        
-        
+
+
     # ********************************************************
     #     structDefinition
     #   : 'struct' identifier
     #     '{' ( variableDeclaration ';' (variableDeclaration ';')* )? '}' ;
-    
+
     def visitStructDefinition(self, ctx: SolidityParser.structDefinition):
         return Node(
             ctx=ctx,
@@ -287,12 +287,12 @@ class AstVisitor(SolidityVisitor):
             name=ctx.identifier().getText(),
             members=self.visit(ctx.variableDeclaration())
         )
-    
-    
+
+
     # ********************************************************
     #     modifierDefinition
     #   : 'modifier' identifier parameterList? ( VirtualKeyword | overrideSpecifier )* ( ';' | block ) ;
-    
+
     def visitModifierDefinition(self, ctx: SolidityParser.ModifierDefinitionContext):
         parameters = []
 
@@ -311,7 +311,7 @@ class AstVisitor(SolidityVisitor):
     # ********************************************************
     #     functionDefinition
     # : functionDescriptor parameterList modifierList returnParameters? ( ';' | block ) ;
-    
+
     def visitFunctionDefinition(self, ctx: SolidityParser.FunctionDefinitionContext):
         # name = ctx.identifier().getText() if ctx.identifier() else ""
         functionDescriptor = self.visit(ctx.functionDescriptor())
@@ -322,7 +322,7 @@ class AstVisitor(SolidityVisitor):
         else:
             name = self._currentContract
             function_type = "ConstructorDefinition"
-            isConstructor = True   
+            isConstructor = True
         parameters = self.visit(ctx.parameterList())
         returnParameters = self.visit(ctx.returnParameters()) if ctx.returnParameters() else []
         block = self.visit(ctx.block()) if ctx.block() else []
@@ -356,8 +356,8 @@ class AstVisitor(SolidityVisitor):
             isConstructor=isConstructor,
             stateMutability=stateMutability
         )
-    
-    
+
+
     # ********************************************************
     #     functionDescriptor
     #   : 'function' ( identifier | ReceiveKeyword | FallbackKeyword )?
@@ -371,17 +371,17 @@ class AstVisitor(SolidityVisitor):
             type="functionDescriptor",
             name=ctx.identifier().getText(),
         )
-        
-    
-    
+
+
+
     # ********************************************************
     #     returnParameters
     #   : 'returns' parameterList ;
-    
+
     def visitReturnParameters(self, ctx: SolidityParser.ReturnParametersContext):
         return self.visit(ctx.parameterList())
-    
-    
+
+
     # ********************************************************
     #     modifierInvocation
     #   : identifier ( '(' expressionList? ')' )? ;
@@ -400,12 +400,12 @@ class AstVisitor(SolidityVisitor):
             name=ctx.identifier().getText(),
             arguments=args
         )
-        
-    
+
+
     # ********************************************************
     #     eventDefinition
     #   : 'event' identifier eventParameterList AnonymousKeyword? ';' ;
-    
+
     def visitEventDefinition(self, ctx: SolidityParser.eventDefinition):
         return Node(
             ctx=ctx,
@@ -414,12 +414,12 @@ class AstVisitor(SolidityVisitor):
             parameters=self.visit(ctx.eventParameterList()),
             isAnonymous=not not ctx.AnonymousKeyword()
         )
-        
-        
+
+
     # ********************************************************
     #     enumDefinition
     #   : 'enum' identifier '{' enumValue? (',' enumValue)* '}' ;
-    
+
     def visitEnumDefinition(self, ctx: SolidityParser.enumDefinition):
         return Node(
             ctx=ctx,
@@ -427,20 +427,7 @@ class AstVisitor(SolidityVisitor):
             name=ctx.identifier().getText(),
             members=self.visit(ctx.enumValue())
         )
-        
-        
-    # ********************************************************
-    #     parameterList
-    #   : '(' ( parameter (',' parameter)* )? ')' ;
-    
-    def visitParameterList(self, ctx: SolidityParser.ParameterListContext):
-        parameters = [self.visit(p) for p in ctx.parameter()]
-        return Node(
-            ctx=ctx,
-            type="ParameterList",
-            parameters=parameters
-        )
-        
+
 
     # ********************************************************
     #     enumValue
@@ -451,8 +438,8 @@ class AstVisitor(SolidityVisitor):
             type="EnumValue",
             name=ctx.identifier().getText()
         )
-    
-    
+
+
     # ********************************************************
     #     parameterList
     #   : '(' ( parameter (',' parameter)* )? ')' ;
@@ -463,12 +450,12 @@ class AstVisitor(SolidityVisitor):
             type="ParameterList",
             parameters=parameters
         )
-    
+
     # ********************************************************
     #     parameter
     #   : typeName storageLocation? identifier? ;
     def visitParameter(self, ctx: SolidityParser.ParameterContext):
-    
+
         storageLocation = ctx.storageLocation().getText() if ctx.storageLocation() else None
         name = ctx.identifier().getText() if ctx.identifier() else None
 
@@ -481,8 +468,8 @@ class AstVisitor(SolidityVisitor):
             isStateVar=False,
             isIndexed=False
         )
-    
-    
+
+
     # ********************************************************
     #     eventParameterList
     #   : '(' ( eventParameter (',' eventParameter)* )? ')' ;
@@ -506,7 +493,7 @@ class AstVisitor(SolidityVisitor):
             type='EventParameterList',
             parameters=parameters
         )
-    
+
     # ********************************************************
     #     eventParameter
     #   : typeName IndexedKeyword? identifier? ;
@@ -527,7 +514,7 @@ class AstVisitor(SolidityVisitor):
             isStateVar=False,
             isIndexed=not not ctx.IndexedKeyword()
         )
-    
+
     # ********************************************************
     #     variableDeclaration
     #   : typeName storageLocation? identifier ;
@@ -544,8 +531,8 @@ class AstVisitor(SolidityVisitor):
             name=ctx.identifier().getText(),
             storageLocation=storageLocation
         )
-    
-    
+
+
     # ********************************************************
     #     typeName
     #   : elementaryTypeName
@@ -575,8 +562,8 @@ class AstVisitor(SolidityVisitor):
             )
 
         return self.visit(ctx.getChild(0))
-    
-    
+
+
     # ********************************************************
     #     userDefinedTypeName
     #   : identifier ( '.' identifier )* ;
@@ -586,8 +573,8 @@ class AstVisitor(SolidityVisitor):
             type='UserDefinedTypeName',
             namePath=ctx.getText()
         )
-    
-    
+
+
     # ********************************************************
     #     mapping
     #   : 'mapping' '(' (elementaryTypeName | userDefinedTypeName) '=>' typeName ')' ;
@@ -598,8 +585,8 @@ class AstVisitor(SolidityVisitor):
             keyType=self.visit(ctx.elementaryTypeName()),
             valueType=self.visit(ctx.typeName())
         )
-        
-        
+
+
     # ********************************************************
     #     functionTypeName
     #   : 'function' parameterList modifierList returnParameters? ;
@@ -628,8 +615,8 @@ class AstVisitor(SolidityVisitor):
             visibility=visibility,
             stateMutability=stateMutability
         )
-    
-    
+
+
     # ********************************************************
     #     block
     #   : '{' statement* '}' ;
@@ -639,9 +626,9 @@ class AstVisitor(SolidityVisitor):
             type='Block',
             statements=self.visit(ctx.statement())
         )
-        
-        
-    # ********************************************************        
+
+
+    # ********************************************************
     #     statement
     #   : ifStatement
     #   | tryStatement
@@ -658,23 +645,23 @@ class AstVisitor(SolidityVisitor):
     #   | simpleStatement ;
     def visitStatement(self, ctx: SolidityParser.statement):
         return self.visit(ctx.getChild(0))
-        
-            
-    # ********************************************************  
+
+
+    # ********************************************************
     #     expressionStatement
-    #   : expression ';' ;        
+    #   : expression ';' ;
     def visitExpressionStatement(self, ctx: SolidityParser.expressionStatement):
         return Node(
             ctx=ctx,
             type='ExpressionStatement',
             expression=self.visit(ctx.expression())
-        )        
+        )
 
-    # ********************************************************  
+    # ********************************************************
     # ifStatement
     #   : 'if' '(' expression ')' statement ( 'else' statement )? ;
     def visitIfStatement(self, ctx: SolidityParser.ifStatement):
-    
+
         TrueBody = self.visit(ctx.statement(0))
 
         FalseBody = None
@@ -688,9 +675,9 @@ class AstVisitor(SolidityVisitor):
             TrueBody=TrueBody,
             FalseBody=FalseBody
         )
-    
-    
-    # ******************************************************** 
+
+
+    # ********************************************************
     # tryStatement : 'try' expression returnParameters? block catchClause+ ;
     def visitTryStatement(self, ctx: SolidityParser.tryStatement):
         return Node(
@@ -700,9 +687,9 @@ class AstVisitor(SolidityVisitor):
             expression=self.visit(ctx.expression()),
             catchClause=self.visit(ctx.catchClause())
         )
-        
-    
-    # ******************************************************** 
+
+
+    # ********************************************************
     # catchClause : 'catch' ( identifier? parameterList )? block ;
     def visitCatchClause(self, ctx: SolidityParser.catchClause):
         return Node(
@@ -710,9 +697,9 @@ class AstVisitor(SolidityVisitor):
             type="CatchClause",
             block=self.visit(ctx.block())
         )
-    
-    
-    # ******************************************************** 
+
+
+    # ********************************************************
     #     whileStatement
     #   : 'while' '(' expression ')' statement ;
     def visitWhileStatement(self, ctx: SolidityParser.whileStatement):
@@ -722,10 +709,10 @@ class AstVisitor(SolidityVisitor):
             condition=self.visit(ctx.expression()),
             body=self.visit(ctx.statement())
         )
-    
-    
-    
-    # ******************************************************** 
+
+
+
+    # ********************************************************
     #     forStatement
     #   : 'for' '(' ( simpleStatement | ';' ) ( expressionStatement | ';' ) expression? ')' statement ;
     def visitForStatement(self, ctx: SolidityParser.forStatement):
@@ -746,16 +733,16 @@ class AstVisitor(SolidityVisitor):
             ),
             body=self.visit(ctx.statement())
         )
-    
-    
-    # ******************************************************** 
+
+
+    # ********************************************************
     #     simpleStatement
     #   : ( variableDeclarationStatement | expressionStatement ) ;
     def visitSimpleStatement(self, ctx: SolidityParser.simpleStatement):
         return self.visit(ctx.getChild(0))
-    
-    
-    # ******************************************************** 
+
+
+    # ********************************************************
     #     inlineAssemblyStatement
     #   : 'assembly' StringLiteralFragment? assemblyBlock ;
     def visitInLineAssemblyStatement(self, ctx: SolidityParser.inlineAssemblyStatement):
@@ -771,9 +758,9 @@ class AstVisitor(SolidityVisitor):
             language=language,
             body=self.visit(ctx.assemblyBlock())
         )
-    
-    
-    # ******************************************************** 
+
+
+    # ********************************************************
     #     doWhileStatement
     #   : 'do' statement 'while' '(' expression ')' ';' ;
     def visitDoWhileStatement(self, ctx: SolidityParser.doWhileStatement):
@@ -784,23 +771,23 @@ class AstVisitor(SolidityVisitor):
             body=self.visit(ctx.statement())
         )
 
-    
-    # ******************************************************** 
+
+    # ********************************************************
     # returnStatement
     #   : 'return' expression? ';' ;
     def visitReturnStatement(self, ctx: SolidityParser.returnStatement):
         return self.visit(ctx.expression())
-    
-    
-    # ******************************************************** 
+
+
+    # ********************************************************
     #     throwStatement
     #   : 'throw' ';' ;
     def visieThrowStatement(self, ctx: SolidityParser.throwStatement):
         # TODO
         return self.visit(ctx.expression())
-    
-    
-    # ********************************************************   
+
+
+    # ********************************************************
     #     emitStatement
     #   : 'emit' functionCall ';' ;
     def visitEmitStatement(self, ctx):
@@ -809,13 +796,13 @@ class AstVisitor(SolidityVisitor):
             type='EmitStatement',
             eventCall=self.visit(ctx.getChild(1))
         )
-    
-    
-    # ********************************************************   
+
+
+    # ********************************************************
     #     variableDeclarationStatement
     #   : ( 'var' identifierList | variableDeclaration | '(' variableDeclarationList ')' ) ( '=' expression )? ';';
     def visitVariableDeclarationStatement(self, ctx):
-    
+
         if ctx.variableDeclaration():
             variables = [self.visit(ctx.variableDeclaration())]
         elif ctx.identifierList():
@@ -834,15 +821,15 @@ class AstVisitor(SolidityVisitor):
             variables=variables,
             initialValue=initialValue
         )
-    
-    
-    # ********************************************************   
+
+
+    # ********************************************************
     #     variableDeclarationList
     #   : variableDeclaration? (',' variableDeclaration? )* ;
     def visitVariableDeclarationList(self, ctx: SolidityParser.VariableDeclarationListContext):
         result = []
         for decl in self._mapCommasToNulls(ctx.children):
-            if decl == None:
+            if decl is None:
                 return result
 
             result.append(
@@ -858,9 +845,9 @@ class AstVisitor(SolidityVisitor):
             )
 
         return result
-    
-    
-    # ********************************************************   
+
+
+    # ********************************************************
     #     identifierList
     #   : '(' ( identifier? ',' )* identifier? ')' ;
     def visitIdentifierList(self, ctx: SolidityParser.IdentifierListContext):
@@ -868,7 +855,7 @@ class AstVisitor(SolidityVisitor):
 
         result = []
         for iden in self._mapCommasToNulls(children):
-            if iden == None:
+            if iden is None:
                 result.append(None)
             else:
                 result.append(
@@ -881,11 +868,11 @@ class AstVisitor(SolidityVisitor):
                         iden=iden
                     )
                 )
-    
+
         return result
-    
-    
-    # ******************************************************** 
+
+
+    # ********************************************************
     #     elementaryTypeName
     #   : 'address' PayableKeyword? | 'bool' | 'string' | 'var' | Int | Uint | 'byte' | Byte | Fixed | Ufixed ;
     def visitElementaryTypeName(self, ctx):
@@ -894,9 +881,9 @@ class AstVisitor(SolidityVisitor):
             type='ElementaryTypeName',
             name=ctx.getText()
         )
-    
-        
-    # ********************************************************     
+
+
+    # ********************************************************
     #     primaryExpression
     #   : BooleanLiteral
     #   | numberLiteral
@@ -954,9 +941,9 @@ class AstVisitor(SolidityVisitor):
                 )
 
         return self.visit(ctx.getChild(0))
-    
-    
-    # ********************************************************  
+
+
+    # ********************************************************
     #     functionCall
     #   : expression '(' functionCallArguments ')' ;
     def visitFunctionCall(self, ctx):
@@ -980,9 +967,9 @@ class AstVisitor(SolidityVisitor):
             arguments=args,
             names=names
         )
-        
-        
-    # ******************************************************** 
+
+
+    # ********************************************************
     #     tupleExpression
     #   : '(' ( expression? ( ',' expression? )* ) ')'
     #   | '[' ( expression ( ',' expression )* )? ']' ;
@@ -996,8 +983,8 @@ class AstVisitor(SolidityVisitor):
             components=components,
             isArray=ctx.getChild(0).getText() == '['
         )
-    
-    # ******************************************************** 
+
+    # ********************************************************
     #     typeNameExpression
     #   : elementaryTypeName
     #   | userDefinedTypeName ;
@@ -1007,7 +994,7 @@ class AstVisitor(SolidityVisitor):
             type='TypeNameExpression',
             typeName=self.visit(ctx.elementaryTypeName())
         )
-        
+
 
     # ********************************************************
     #     expression
@@ -1040,7 +1027,7 @@ class AstVisitor(SolidityVisitor):
     #   | expression ('=' | '|=' | '^=' | '&=' | '<<=' | '>>=' | '+=' | '-=' | '*=' | '/=' | '%=') expression
     #   | primaryExpression ;
     def visitExpression(self, ctx):
-    
+
         children_length = len(ctx.children)
         if children_length == 1:
             return self.visit(ctx.getChild(0))
@@ -1072,7 +1059,7 @@ class AstVisitor(SolidityVisitor):
                     subExpression=self.visit(ctx.getChild(0)),
                     isPrefix=False
                 )
-                
+
         elif children_length == 3:
             if ctx.getChild(0).getText() == '(' and ctx.getChild(2).getText() == ')':
                 return Node(
@@ -1155,14 +1142,14 @@ class AstVisitor(SolidityVisitor):
                 names = []
 
                 ctxArgs = ctx.functionCallArguments()
-                if ctxArgs: # payable( )                                             
+                if ctxArgs: # payable( )
                     if ctxArgs.expressionList():
                         args = [self.visit(a) for a in ctxArgs.expressionList().expression()]
                     elif ctxArgs.nameValueList():
                         for nameValue in ctxArgs.nameValueList().nameValue():
                             args.append(self.visit(nameValue.expression()))
                             names.append(nameValue.identifier().getText())
-                
+
 
                 return Node(
                     ctx=ctx,
@@ -1191,10 +1178,10 @@ class AstVisitor(SolidityVisitor):
                     FalseExpression=self.visit(ctx.getChild(4))
                 )
 
-        # raise Exception("unrecognized expression")    
-        
-        
-    # ********************************************************     
+        # raise Exception("unrecognized expression")
+
+
+    # ********************************************************
     #     assemblyItem
     #   : identifier
     #   | assemblyBlock
@@ -1215,7 +1202,7 @@ class AstVisitor(SolidityVisitor):
     #   | stringLiteral
     #   | hexLiteral ;
 
-    
+
     # ********************************************************
     #     assemblyBlock
     #   : '{' assemblyItem* '}' ;
@@ -1226,10 +1213,10 @@ class AstVisitor(SolidityVisitor):
             type="AssemblyBlock",
             operations=operations
         )
-    
-    
+
+
     def visitAssemblyItem(self, ctx: SolidityParser.assemblyItem):
-    
+
         if ctx.hexLiteral():
             return Node(
                 ctx=ctx,
@@ -1258,16 +1245,16 @@ class AstVisitor(SolidityVisitor):
             )
 
         return self.visit(ctx.getChild(0))
-    
-    
+
+
     # ********************************************************
     #     assemblyExpression
     #   : assemblyCall | assemblyLiteral ;
     def visitAssemblyExpression(self, ctx):
         return self.visit(ctx.getChild(0))
-    
-    
-    # ********************************************************   
+
+
+    # ********************************************************
     #     assemblyCall
     #   : ( 'return' | 'address' | 'byte' | identifier ) ( '(' assemblyExpression? ( ',' assemblyExpression )* ')' )? ;
     def visitAssemblyCall(self, ctx):
@@ -1280,26 +1267,9 @@ class AstVisitor(SolidityVisitor):
             functionName=functionName,
             arguments=args
         )
-        
-        
-    # ********************************************************       
-    #     assemblyLocalDefinition
-    #   : 'let' assemblyIdentifierList ( ':=' assemblyExpression )? ;
-    def visitAssemblyFunctionDefinition(self, ctx):
-        args = ctx.assemblyIdentifierList().identifier()
-        returnArgs = ctx.assemblyFunctionReturns().assemblyIdentifierList().identifier()
 
-        return Node(
-            ctx=ctx,
-            type='AssemblyFunctionDefinition',
-            name=ctx.identifier().getText(),
-            arguments=self.visit(args),
-            returnArguments=self.visit(returnArgs),
-            body=self.visit(ctx.assemblyBlock())
-        )
-    
-    
-    # ********************************************************   
+
+    # ********************************************************
     #     assemblyAssignment
     #   : assemblyIdentifierList ':=' assemblyExpression ;
     def visitAssemblyAssignment(self, ctx):
@@ -1315,10 +1285,10 @@ class AstVisitor(SolidityVisitor):
             type='AssemblyAssignment',
             names=names,
             expression=self.visit(ctx.assemblyExpression())
-        )    
-    
-    
-    # ********************************************************      
+        )
+
+
+    # ********************************************************
     #     assemblyStackAssignment
     #   : '=:' identifier ;
     def visitAssemblyStackAssignment(self, ctx):
@@ -1327,9 +1297,9 @@ class AstVisitor(SolidityVisitor):
             type='AssemblyStackAssignment',
             name=ctx.identifier().getText()
         )
-        
-        
-    # ********************************************************     
+
+
+    # ********************************************************
     #     labelDefinition
     #   : identifier ':' ;
     def visitLabelDefinition(self, ctx):
@@ -1338,19 +1308,19 @@ class AstVisitor(SolidityVisitor):
             type='LabelDefinition',
             name=ctx.identifier().getText()
         )
-        
-        
-    # ******************************************************** 
+
+
+    # ********************************************************
     #     assemblyCase
     #   : 'case' assemblyLiteral assemblyType? assemblyBlock
-    #   | 'default' assemblyBlock ;    
+    #   | 'default' assemblyBlock ;
     def visitAssemblyCase(self, ctx):
         value = None
 
         if ctx.getChild(0).getText() == 'case':
             value = self.visit(ctx.assemblyLiteral())
 
-        if value != None:
+        if value is not None:
             node = Node(
                 ctx=ctx,
                 type="AssemblyCase",
@@ -1365,10 +1335,10 @@ class AstVisitor(SolidityVisitor):
                 default=True
             )
 
-        return node    
-        
-          
-    # ********************************************************   
+        return node
+
+
+    # ********************************************************
     # assemblySwitch
     #   : 'switch' assemblyExpression assemblyCase* ;
     def visitAssemblySwitch(self, ctx):
@@ -1379,7 +1349,7 @@ class AstVisitor(SolidityVisitor):
             cases=[self.visit(c) for c in ctx.assemblyCase()]
         )
 
-    # ********************************************************   
+    # ********************************************************
     #     assemblyFunctionDefinition
     # : 'function' identifier '(' assemblyTypedVariableList? ')'
     #     assemblyFunctionReturns? assemblyBlock ;
@@ -1397,7 +1367,7 @@ class AstVisitor(SolidityVisitor):
         )
 
 
-    # ********************************************************  
+    # ********************************************************
     #     assemblyFor
     #   : 'for' assemblyBlock assemblyExpression assemblyBlock assemblyBlock ;
     def visitAssemblyFor(self, ctx):
@@ -1421,13 +1391,13 @@ class AstVisitor(SolidityVisitor):
             condition=self.visit(ctx.assemblyExpression()),
             body=self.visit(ctx.assemblyBlock())
         )
-        
-        
+
+
     # ********************************************************
     #     assemblyLiteral
     #   : ( stringLiteral | DecimalNumber | HexNumber | hexLiteral | BooleanLiteral ) assemblyType? ;
     def visitAssemblyLiteral(self, ctx):
-    
+
         if ctx.stringLiteral():
             text = ctx.getText()
             return Node(
@@ -1454,8 +1424,8 @@ class AstVisitor(SolidityVisitor):
                 type='HexLiteral',
                 value=ctx.getText()
             )
-            
-            
+
+
     # ********************************************************
     #     assemblyTypedVariableList
     #   : identifier assemblyType? ( ',' assemblyTypedVariableList )? ;
@@ -1465,9 +1435,9 @@ class AstVisitor(SolidityVisitor):
             ctx=ctx,
             type="AssemblyTypedVariableList"
         )
-    
-    
-    # ********************************************************   
+
+
+    # ********************************************************
     #     assemblyType
     #   : ':' identifier ;
     def visitAssemblyType(self, ctx: SolidityParser.AssemblyTypeContext):
@@ -1476,9 +1446,9 @@ class AstVisitor(SolidityVisitor):
             ctx=ctx,
             type="AssemblyType"
         )
-    
-    
-    # ********************************************************     
+
+
+    # ********************************************************
     #     subAssembly
     #   : 'assembly' identifier assemblyBlock ;
     def visitSubAssembly(self, ctx: SolidityParser.SubAssemblyContext):
@@ -1486,10 +1456,10 @@ class AstVisitor(SolidityVisitor):
         return Node(
             ctx=ctx,
             type="SubAssembly"
-        ) 
-        
-        
-    # ******************************************************** 
+        )
+
+
+    # ********************************************************
     #     numberLiteral
     #   : (DecimalNumber | HexNumber) NumberUnit? ;
     def visitNumberLiteral(self, ctx):
@@ -1505,19 +1475,19 @@ class AstVisitor(SolidityVisitor):
             number=number,
             subdenomination=subdenomination
         )
-    
-    
-    # ********************************************************     
+
+
+    # ********************************************************
     #     identifier
     #   : ('from' | 'calldata' | 'address' | Identifier) ;
-    
+
     def visitIdentifier(self, ctx):
         return Node(
             ctx=ctx,
             type="Identifier",
             name=ctx.getText()
         )
-    
+
 
 def visit(node, callback_object):
     """
@@ -1567,8 +1537,6 @@ def objectify(start_node, file_name=None):
     :return:
     """
 
-    current_contract = None
-    current_function = None
 
     class ObjectifyContractVisitor(object):
 
@@ -1576,7 +1544,7 @@ def objectify(start_node, file_name=None):
             self.node = node
             self.name = node.name
             self.kind = node.kind
-                
+
             self.dependencies = []
             self.stateVars = {}
             self.names = {}
@@ -1600,7 +1568,7 @@ def objectify(start_node, file_name=None):
 
         def visitConstructorDefinition(self, _node):
             class ConstructorObject(object):
-    
+
                 def __init__(self, node):
                     self.node = node
                     if(node.type=="ConstructorDefinition"):
@@ -1611,25 +1579,25 @@ def objectify(start_node, file_name=None):
                     self.declarations = {}
                     self.identifiers = {}
                     self.assemblys = {}
-            
+
             class ConstructorArgumentVisitor(object):
-    
+
                 def __init__(self):
                     self.parameters = {}
 
                 def visitParameter(self, __node):
                     self.parameters[__node.name] = __node
-            
+
             class VarDecVisitor(object):
-    
+
                 def __init__(self):
                     self.variable_declarations = {}
 
                 def visitVariableDeclaration(self, __node):
                     self.variable_declarations[__node.name] = __node
-                    
+
             class IdentifierDecVisitor(object):
-    
+
                 def __init__(self):
                     self.idents = {}
 
@@ -1641,16 +1609,16 @@ def objectify(start_node, file_name=None):
 
             current_Constructor = ConstructorObject(_node)
             self.constructor = current_Constructor
-            
+
             constructorargvisitor = ConstructorArgumentVisitor()
             visit(_node.parameters, constructorargvisitor)
             current_Constructor.arguments = constructorargvisitor.parameters
             current_Constructor.declarations.update(current_Constructor.arguments)
-            
+
             vardecs = VarDecVisitor()
             visit(_node.body, vardecs)
             current_Constructor.declarations.update(vardecs.variable_declarations)
-            
+
             idents = IdentifierDecVisitor()
             visit(_node, idents)
             current_Constructor.identifiers.update(idents.idents)
@@ -1678,7 +1646,7 @@ def objectify(start_node, file_name=None):
                     self.declarations = {}
                     self.node = node
 
-                def visitVariableDeclaration(self, __node):                                                 
+                def visitVariableDeclaration(self, __node):
                     self.arguments[__node.name] = __node
                     self.declarations[__node.name] = __node
 
@@ -1732,13 +1700,13 @@ def objectify(start_node, file_name=None):
                     self.assemblycalls[__node.name] = __node
 
             class InLineAssemblyStatementVisitor(object):
-                
+
                 def __init__(self):
                     self.assemStatements = []
-                    
+
                 def visitAssemblyBlock(self, __node):
                     self.assemStatements.append(__node)
-            
+
             current_function = FunctionObject(_node)
             self.names[_node.name] = current_function
             if _definition_type=="ModifierDefinition":
@@ -1776,7 +1744,7 @@ def objectify(start_node, file_name=None):
             assemblyStatement = InLineAssemblyStatementVisitor()
             visit(_node.body, assemblyStatement)
             current_function.assemblys = assemblyStatement.assemStatements
-            
+
         def visitModifierDefinition(self, _node):
             return self.visitFunctionDefinition(_node, "ModifierDefinition")
 
@@ -1784,7 +1752,7 @@ def objectify(start_node, file_name=None):
     class ObjectifySourceUnitVisitor(object):
 
         TRUST_CONTRACTS = ["SafeMath"]
-        
+
         def __init__(self, node):
             self.node = node
             self.fileName = file_name
@@ -1808,7 +1776,7 @@ def objectify(start_node, file_name=None):
 
                 # subparse the contracts //slightly inefficient but more readable :)
                 visit(node, self.contracts[node.name])
-                
+
     objectified_source_unit = ObjectifySourceUnitVisitor(start_node)
     visit(start_node, objectified_source_unit)
     return objectified_source_unit
@@ -1817,11 +1785,11 @@ def objectify(start_node, file_name=None):
 def parse_file(path, start="sourceUnit", loc=False, strict=False):
     with open(path, 'r', encoding="utf-8") as f:
         return parse(f.read(), start=start, loc=loc, strict=strict, path=path)
-    
-    
+
+
 def parse(text, start="sourceUnit", loc=False, strict=False, path=None):
+    from antlr4 import CommonTokenStream
     from antlr4.InputStream import InputStream
-    from antlr4 import FileStream, CommonTokenStream
 
     input_stream = InputStream(text)
 

@@ -23,7 +23,7 @@ usage: asuka [-h] [--version] [-k APIKEY] [-c CHAIN] [-d] [-i INCLUDE] [-e EXCLU
 positional arguments:
   path                  Folders or solidity files or address.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --version             Show current version
   -k APIKEY, --apikey APIKEY
@@ -52,7 +52,7 @@ asuka .
 Scan contract by address chain type and api key:
 
 ```shell
-asuka 0xdac17f958d2ee523a2206206994597c13d831ec7 -t eth -k xxxxxxxxxxxxxxxxxx
+asuka 0xdac17f958d2ee523a2206206994597c13d831ec7 -c eth -k xxxxxxxxxxxxxxxxxx
 ```
 
 Support Ethereum now.
@@ -63,7 +63,7 @@ Scan single solidity file:
 asuka test.sol
 ```
 
-Specify or exclude detectors, using -i(inclued) or -e(exclude) and the SWC id Should be separated by a comma. SWC id can be start with s or just a number.
+Specify or exclude detectors, using -i(include) or -e(exclude) and the SWC id Should be separated by a comma. SWC id can be start with s or just a number.
 
 ```shell
 asuka . -i s100,101
@@ -80,8 +80,7 @@ asuka . -t 4
 
 Local imports (`"./x.sol"`, `"../lib/x.sol"`, `"/contracts/x.sol"`) are resolved
 automatically: imported files are parsed and indexed so inheritance chains and
-types resolve across files, and `Contract.resolved_state_vars()` /
-`resolved_functions()` include inherited members.
+declared types resolve across files.
 
 Imports are **resolution-only** - a dependency is never a scan target, and
 package-style paths (`"@openzeppelin/..."`) are recorded but not resolved
@@ -97,7 +96,9 @@ asuka contracts/
 Detectors see inherited declarations: a state variable declared in a base
 contract (even in another file) is recognised when deciding whether a
 `transfer(...)` call is an ether payout or an unchecked token move, and when
-checking for reentrancy writes after an external call.
+checking for reentrancy writes after an external call. Inherited *functions*
+are not scanned yet - only functions defined in the files being scanned are
+reported (see AGENTS.md).
 
 ## Detectors
 

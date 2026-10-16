@@ -131,12 +131,12 @@ def test_directory_without_sol_files_raises(tmp_path):
 
 def test_detector_crash_is_isolated(monkeypatch):
     """A crashing detector surfaces as an error, never as a pool abort."""
-    from vuls import reentrancy
+    from vuls.reentrancy import Reentrancy
 
-    def boom(scan):
+    def boom(self, scan):
         raise RuntimeError("detector exploded")
 
-    monkeypatch.setattr(reentrancy, "check", boom)
+    monkeypatch.setattr(Reentrancy, "check", boom)
     asuka = Asuka(_root=str(TEST_DATA / "reentrancy.sol"))
     vul_list, error = asuka._scan_file_isolated(
         (str(TEST_DATA / "reentrancy.sol"), [107])

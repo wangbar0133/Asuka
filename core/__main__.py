@@ -1,7 +1,7 @@
 import argparse
 import logging
 
-from vuls import all_detector
+from vuls.all_detector import ALL_DETECTORS, DETECTOR_IDS
 
 from . import __version__
 from .asuka import Asuka
@@ -11,21 +11,10 @@ from .utils import check_address
 
 class ListAllDetectors(argparse.Action):
 
-    def __call__(self, parser, *args, **kwargs):
-        Printer.print_blue("Find {} detectors:".format(len(allDetectorList)))
-        Printer.print_detectors(allDetectorList, allDetectorTable)
+    def __call__(self, parser: argparse.ArgumentParser, *args, **kwargs) -> None:
+        Printer.print_blue(f"Find {len(DETECTOR_IDS)} detectors:")
+        Printer.print_detectors(DETECTOR_IDS, ALL_DETECTORS)
         parser.exit()
-
-# Load all detectors
-# All detectors are in the vuls folder
-allDetectorTable = dict()
-allDetectorList = list()
-for attrName in dir(all_detector):
-    if hasattr(getattr(all_detector, attrName), "check"):
-        detetor = getattr(all_detector, attrName)
-        allDetectorTable[detetor.ID] = detetor
-        allDetectorList.append(detetor.ID)
-allDetectorList.sort()
 
 
 parser = argparse.ArgumentParser()
@@ -49,30 +38,30 @@ groupDetect.add_argument("-i", "--include", help="Specify the detector")
 groupDetect.add_argument("-e", "--exclude", help="Exclusion detector")
 groupDetect.add_argument("-t", "--thread", help="Number of threads")
 
-def parse_vuls_string(s) -> list:
+def parse_vuls_string(s: str) -> list[int]:
     """
         This function can parse the input vuls string.
         Like 100 & s100 & 101,102 & s101,102,s103.
         Return a int list of all vuls.
     """
-    vuls = list()
-    unValidVuls = list()
+    vuls: list[int] = []
+    unValidVuls: list[str] = []
     for item in s.split(","):
         if item[0] == "s":
             item = item[1:]
         if item.isdigit():
-            if int(item) in allDetectorList:
+            if int(item) in DETECTOR_IDS:
                 vuls.append(int(item))
                 continue
         unValidVuls.append(item)
     if unValidVuls:
         for unValidVul in unValidVuls:
-            Printer.print_red("Unkonw detectors:")
+            Printer.print_red("Unknown detectors:")
             print(unValidVul)
             exit(1)
     return vuls
 
-def main():
+def main() -> None:
     logging.basicConfig(
         filename="debug.log",
         filemode="w",
@@ -88,9 +77,9 @@ def main():
         if args.include:
             detectors = sorted(parse_vuls_string(args.include))
         elif args.exclude:
-            detectors = sorted(list(set(allDetectorList) - set(parse_vuls_string(args.exclude))))
+            detectors = sorted(list(set(DETECTOR_IDS) - set(parse_vuls_string(args.exclude))))
         else:
-            detectors = allDetectorList
+            detectors = DETECTOR_IDS
 
         if args.thread:
             thread = int(args.thread)
@@ -114,16 +103,16 @@ def main():
         asuka = Asuka(_root=root, _detectors=detectors, _threads=thread, _chainType=chainType,_apiKey=apiKey)
         Printer.print_files(asuka.allSolFiles)
         Printer.print_blue("Check list:")
-        Printer.print_detectors(detectors, allDetectorTable)
+        Printer.print_detectors(detectors, ALL_DETECTORS)
         # Printer.print_yellow("Antlr4 warn:")
 
         # Start scan task
         asuka.scan()
-        Printer.print_green("\n\n--------------------------Finsh--------------------------\n")
+        Printer.print_green("\n\n--------------------------Finish--------------------------\n")
         if asuka.errors:
-            Printer.print_red("{} file(s) failed to scan:".format(len(asuka.errors)))
+            Printer.print_red(f"{len(asuka.errors)} file(s) failed to scan:")
             for error in asuka.errors:
-                print("  {}".format(error))
+                print(f"  {error}")
             print("\n")
         Printer.print_summary(asuka.vulTable)
         Printer.print_vul_table(asuka.vulTable)

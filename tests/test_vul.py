@@ -8,7 +8,7 @@ def make_vuls(vul_id=107, count=2, risk=3):
     return Vuls(
         name="SomeVul",
         id=vul_id,
-        descreibe="describe",
+        description="describe",
         advice="advice",
         risk=risk,
         vulList=[

@@ -4,12 +4,12 @@ import platform
 import requests
 
 
-class Scraper(object):
-    headers = {
+class Scraper:
+    headers: dict[str, str] = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'
     }
 
-    def __init__(self, chainType:str, apiKey:str):
+    def __init__(self, chainType: str, apiKey: str):
         if platform.system() == "Windows":
             tmpPath = "C:\\Windows\\Temp\\AsukaTmp\\"
         else:
@@ -17,16 +17,16 @@ class Scraper(object):
 
         if not os.path.exists(tmpPath):
             os.mkdir(tmpPath)
-        self.tmpPath = tmpPath
+        self.tmpPath: str = tmpPath
         if chainType == "ETH":
-            self.chainType = "ETH"
-            self.domain = "https://api.etherscan.io"
+            self.chainType: str = "ETH"
+            self.domain: str = "https://api.etherscan.io"
         else:
             raise ValueError("Unsupport chain type!")
 
-        self.apiKey = apiKey
+        self.apiKey: str = apiKey
 
-    def get_source_code(self, address:str) -> str:
+    def get_source_code(self, address: str) -> str:
         """Get source code from address and save to tmp as files
 
         Args:
@@ -39,8 +39,7 @@ class Scraper(object):
         if os.path.exists(self.tmpPath + address):
             return self.tmpPath + address
 
-        url = "{}/api?module=contract&action=getsourcecode&address={}&apikey={}".format(
-            self.domain, address, self.apiKey)
+        url = f"{self.domain}/api?module=contract&action=getsourcecode&address={address}&apikey={self.apiKey}"
 
         try:
             resp = requests.get(url=url, headers=self.headers)

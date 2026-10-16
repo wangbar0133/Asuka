@@ -1,21 +1,37 @@
-class Scanner(object):
+"""AST scanning layer: turns objectified parser output into the
+Scanner/Contract/Function model consumed by detectors."""
+
+from solidity_antlr4_parser.parser import Node
+
+
+class Expression(dict):
+    """Dict with attribute access; missing keys yield None."""
+
+    def __getattr__(self, key: str):
+        return self.get(key)
+
+    def __setattr__(self, key: str, value) -> None:
+        self[key] = value
+
+
+class Scanner:
     """
         A class to scanning solidity unit object.
     """
 
-    def __init__(self, sourceUnitObject):
+    def __init__(self, sourceUnitObject: Node):
         self.sourceUnitObject = sourceUnitObject
-        self.fileName = self.sourceUnitObject.fileName
-        self.contracts = []
-        self.interfaces = []
-        self.functions = []
-        self.operators = []
+        self.fileName: str = self.sourceUnitObject.fileName
+        self.contracts: list[Contract] = []
+        self.interfaces: list[Node] = []
+        self.functions: list[Function] = []
+        self.operators: list[Expression] = []
 
         self.filter_contracts()
         self.get_functions()
         self.get_operators()
 
-    def filter_contracts(self):
+    def filter_contracts(self) -> None:
         for contractObject in self.sourceUnitObject.contracts.values():
             if contractObject.kind == "interface":
                 self.interfaces.append(contractObject)
@@ -23,41 +39,40 @@ class Scanner(object):
             elif contractObject.kind == "contract":
                 self.contracts.append(Contract(contractObject))
 
-    def get_functions(self):
+    def get_functions(self) -> None:
         for contract in self.contracts:
             self.functions += contract.functions
 
-    def get_operators(self):
+    def get_operators(self) -> None:
         for function in self.functions:
             self.operators += function.operators
 
 
+class Contract:
 
-class Contract(object):
-
-    def __init__(self, contractObject):
+    def __init__(self, contractObject: Node):
         self.contractObject = contractObject
-        self.functions = []
+        self.functions: list[Function] = []
         self.get_functions()
 
-    def get_functions(self):
+    def get_functions(self) -> None:
         if self.contractObject.functions:
             for functionObject in self.contractObject.functions.values():
                 self.functions.append(Function(functionObject))
 
 
-class Function(object):
+class Function:
 
     def __init__(self, functionObject):
         self.functionObject = functionObject
-        self.modifiers = []
-        self.statements = []
-        self.expressions = []
-        self.functionCalls = []
-        self.variables = []
-        self.numberLiteral = []
-        self.variableDeclaration = []
-        self.operators = []
+        self.modifiers: list[str] = []
+        self.statements: list[Node] = []
+        self.expressions: list[Expression] = []
+        self.functionCalls: list[Expression] = []
+        self.variables: list[Expression] = []
+        self.numberLiteral: list[Expression] = []
+        self.variableDeclaration: list = []
+        self.operators: list[Expression] = []
 
         self.get_modifier()
         self.get_statements()
@@ -68,16 +83,15 @@ class Function(object):
         self.get_operators()
         self.get_function_calls()
 
-    def get_modifier(self):
+    def get_modifier(self) -> None:
         self.modifiers = [mod.name for mod in self.functionObject.node.modifiers]
 
-
-    def get_statements(self):
+    def get_statements(self) -> None:
         if self.functionObject.node.body:
             for statement in self.functionObject.node.body.statements:
                 self.visit_statement(statement)
 
-    def visit_statement(self, statement):
+    def visit_statement(self, statement) -> None:
         if statement:
             self.statements.append(statement)
             if statement.type == "IfStatement":
@@ -115,22 +129,12 @@ class Function(object):
             else:
                 pass
 
-    def get_expressions(self):
+    def get_expressions(self) -> None:
         if self.statements:
             for statement in self.statements:
                 self.get_expression(statement)
 
-    def get_expression(self, expressionObject):
-
-        class Expression(dict):
-
-            def __getattr__(self, key):
-                return self.get(key)
-
-            def __setattr__(self, key, value):
-                self[key] = value
-
-
+    def get_expression(self, expressionObject) -> None:
         if expressionObject.type == "Identifier":
             self.expressions.append(
                 Expression(
@@ -258,19 +262,19 @@ class Function(object):
         elif expressionObject.type == "UnaryOperation":
             self.get_expression(expressionObject.subExpression)
 
-    def get_variables(self):
+    def get_variables(self) -> None:
         if self.expressions:
             for expression in self.expressions:
                 if expression["type"] == "Identifier":
                     self.variables.append(expression)
 
-    def get_number_literals(self):
+    def get_number_literals(self) -> None:
         if self.expressions:
             for expression in self.expressions:
                 if expression["type"] == "NumberLiteral":
                     self.numberLiteral.append(expression)
 
-    def get_variable_declarations(self):
+    def get_variable_declarations(self) -> None:
         if self.expressions:
             for expression in self.expressions:
                 if expression["type"] == "VariableDeclaration":
@@ -280,20 +284,20 @@ class Function(object):
             if declaration.type == "VariableDeclaration":
                 self.variableDeclaration.append(declaration)
 
-    def get_operators(self):
+    def get_operators(self) -> None:
         if self.expressions:
             for expression in self.expressions:
                 if expression["type"] == "BinaryOperation":
                     self.operators.append(expression)
 
-    def get_function_calls(self):
+    def get_function_calls(self) -> None:
         if self.expressions:
             for expression in self.expressions:
                 if expression["type"] == "FunctionCall":
                     self.functionCalls.append(expression)
 
-    def get_below_statements(self, node):
-        below_statements = list()
+    def get_below_statements(self, node) -> list[Node]:
+        below_statements: list[Node] = []
         # Node.__getattr__ raises KeyError for missing keys, which
         # hasattr() does not catch - use the dict interface instead.
         if not node.get("loc"):
@@ -305,7 +309,7 @@ class Function(object):
         return below_statements
 
 
-class Tools(object):
+class Tools:
 
     @staticmethod
     def scope_check(ctx0, ctx1) -> bool:
@@ -330,9 +334,9 @@ class Tools(object):
             return False
 
     @staticmethod
-    def check_modifier(function_object, modifier: list):
+    def check_modifier(function_object, modifier: list[str]) -> list[str]:
         """Checking if a function declaration contains certain modifiers"""
-        mod_list = list()
+        mod_list: list[str] = []
         function_modifier_list = [mod["name"] for mod in function_object.node["modifiers"]]
         if hasattr(function_object, "stateMutability") and function_object.stateMutability:
             function_modifier_list.append(function_object.stateMutability)

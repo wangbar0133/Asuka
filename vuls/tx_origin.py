@@ -1,50 +1,42 @@
 from ast_scanner.ast_scanner import Scanner
 
-from .vul import Vul, Vuls
+from .detector import Detector
+from .vul import Vul
 
-NAME = "Authorization through tx.origin"
 
-ID = 115
-
-DESCREIBE = """tx.origin is a global variable in Solidity which returns the address of the account that sent the transaction.
+class TxOrigin(Detector):
+    NAME = "Authorization through tx.origin"
+    ID = 115
+    DESCRIPTION = """tx.origin is a global variable in Solidity which returns the address of the account that sent the transaction.
 Using the variable for authorization could make a contract vulnerable if an authorized account calls into a
 malicious contract. A call could be made to the vulnerable contract that passes the authorization check since
 tx.origin returns the original sender of the transaction which in this case is the authorized account."""
+    ADVICE = "Use msg.sender instead."
+    RISK = 3
 
-ADVICE = "Use msg.sender instead."
-
-RISK = 3
-
-def check(scan: Scanner):
-    vul_list = list()
-    for function in scan.functions:
-        for functionCall in function.functionCalls:
-            if functionCall.name != "require":
-                continue
-            # require() may carry no arguments; arguments[0] used to
-            # raise IndexError and kill the whole scan
-            if not functionCall.arguments:
-                continue
-            argument = functionCall.arguments[0]
-            if check_require(argument):
-                vul_list.append(
-                    Vul(
-                        fileName=scan.fileName,
-                        locList=[functionCall.loc]
+    def check(self, scan: Scanner):
+        vul_list: list[Vul] = []
+        for function in scan.functions:
+            for functionCall in function.functionCalls:
+                if functionCall.name != "require":
+                    continue
+                # require() may carry no arguments; arguments[0] used to
+                # raise IndexError and kill the whole scan
+                if not functionCall.arguments:
+                    continue
+                argument = functionCall.arguments[0]
+                if check_require(argument):
+                    vul_list.append(
+                        Vul(
+                            fileName=scan.fileName,
+                            locList=[functionCall.loc]
+                        )
                     )
-                )
 
-    return Vuls(
-            name=NAME,
-            id=ID,
-            descreibe=DESCREIBE,
-            advice=ADVICE,
-            risk=RISK,
-            vulList=vul_list
-        )
+        return self.result(vul_list)
 
 
-def check_require(argument):
+def check_require(argument) -> bool:
     if argument.type != "BinaryOperation":
         return False
     binary = list()

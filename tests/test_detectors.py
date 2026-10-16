@@ -6,13 +6,7 @@ corresponding entry here in the same commit.
 """
 import pytest
 
-from vuls import all_detector
-
-DETECTORS = {
-    module.ID: module
-    for name in dir(all_detector)
-    if hasattr(module := getattr(all_detector, name), "check")
-}
+from vuls.all_detector import ALL_DETECTORS as DETECTORS
 
 EXPECTED_IDS = {100, 101, 104, 107, 109, 112, 115, 137, 138}
 
@@ -54,14 +48,14 @@ EXPECTED = {
 
 
 def test_detector_registry():
-    """All detectors are auto-discovered from vuls.all_detector."""
+    """All detectors are registered with consistent metadata."""
     assert set(DETECTORS) == EXPECTED_IDS
-    for vul_id, module in DETECTORS.items():
-        assert module.ID == vul_id
-        assert module.NAME
-        assert module.DESCREIBE
-        assert module.ADVICE
-        assert module.RISK in (0, 1, 2, 3)
+    for vul_id, detector in DETECTORS.items():
+        assert detector.ID == vul_id
+        assert detector.NAME
+        assert detector.DESCRIPTION
+        assert detector.ADVICE
+        assert detector.RISK in (0, 1, 2, 3)
 
 
 @pytest.mark.parametrize("file", ALL_FILES)

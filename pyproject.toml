@@ -68,7 +68,7 @@ extend-exclude = [
 ]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "B"]
-# Long DESCREIBE/ADVICE strings exceed any sane line length; reflowing them
+select = ["E", "F", "W", "I", "B", "UP"]
+# Long DESCRIPTION strings exceed any sane line length; reflowing them
 # is tracked as a follow-up cleanup, not a lint failure.
 ignore = ["E501"]

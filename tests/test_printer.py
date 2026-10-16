@@ -2,14 +2,14 @@
 import pytest
 
 from core.printer import BANNER, Color, Printer
-from vuls.reentrancy import check as reentrancy_check
+from vuls.all_detector import ALL_DETECTORS
 from vuls.vul import Vul, Vuls, VulTable
 
 
 @pytest.fixture(scope="module")
 def reentrancy_table(scan_file):
     """A VulTable holding the 3 reentrancy findings of reentrancy.sol."""
-    vuls = reentrancy_check(scan_file("reentrancy.sol"))
+    vuls = ALL_DETECTORS[107].check(scan_file("reentrancy.sol"))
     table = VulTable([107])
     table += vuls
     return table
@@ -19,7 +19,7 @@ class TestBanner:
     def test_banner_contains_version_and_url(self, capsys):
         Printer.print_banner()
         out = capsys.readouterr().out
-        assert "0.2.1" in out
+        assert "0.3.0" in out
         assert "github.com/wangbar0133/Asuka" in out
         assert Color.RED in out
 
@@ -29,9 +29,9 @@ class TestBanner:
 
 class TestPrintDetectors:
     def test_lists_id_name_and_risk(self, capsys):
-        from vuls import all_detector
+        from vuls.all_detector import ALL_DETECTORS
 
-        Printer.print_detectors([101], {101: all_detector.int_overflow})
+        Printer.print_detectors([101], ALL_DETECTORS)
         out = capsys.readouterr().out
         assert "s101" in out
         assert "Int Overflow" in out
@@ -63,7 +63,7 @@ class TestPrintVulTable:
         Printer.print_vul_table(reentrancy_table)
         out = capsys.readouterr().out
         assert "s107:Reentrancy" in out
-        assert "Descreibe:" in out
+        assert "Description:" in out
         assert "Advice:" in out
         assert "Detail: https://swcregistry.io/docs/SWC-107" in out
         # code snippet with highlighted lines and the source file name
@@ -72,7 +72,7 @@ class TestPrintVulTable:
 
     def test_empty_vul_list_prints_nothing(self, capsys):
         empty = Vuls(
-            name="Empty", id=999, descreibe="d", advice="a", risk=1, vulList=[]
+            name="Empty", id=999, description="d", advice="a", risk=1, vulList=[]
         )
         table = VulTable([999])
         table += empty
@@ -116,7 +116,7 @@ class TestSnippetEdgeCases:
             }],
         )
         vuls = Vuls(
-            name="Edge", id=999, descreibe="d", advice="a", risk=1, vulList=[vul]
+            name="Edge", id=999, description="d", advice="a", risk=1, vulList=[vul]
         )
         Printer._code_snippet(vuls)
         out = capsys.readouterr().out
@@ -126,7 +126,7 @@ class TestSnippetEdgeCases:
     def test_snippet_prints_header_per_file(self, capsys):
         """Findings from multiple files each print their own header."""
         vuls = Vuls(
-            name="Multi", id=999, descreibe="d", advice="a", risk=2,
+            name="Multi", id=999, description="d", advice="a", risk=2,
             vulList=[
                 Vul(
                     fileName="test_data/reentrancy.sol",

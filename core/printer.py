@@ -1,5 +1,6 @@
 import prettytable
 
+from vuls.detector import Detector
 from vuls.vul import Risk, Vuls, VulTable
 
 from . import __version__
@@ -24,23 +25,24 @@ BANNER = r"""
 """
 
 
-class Printer(object):
+class Printer:
     """
         A class to print info on cli.
     """
 
     @staticmethod
-    def print_banner():
+    def print_banner() -> None:
         print(Color.RED + BANNER.format(version=__version__) + Color.END)
 
     @staticmethod
-    def print_detectors(allDetectorList:list, allDetectorTable:VulTable):
+    def print_detectors(allDetectorList: list[int],
+                        allDetectorTable: dict[int, Detector]) -> None:
         detectorTable = prettytable.PrettyTable()
         detectorTable.field_names = ["ID", "NAME", "RISK"]
         for vulId in allDetectorList:
             detectorTable.add_row(
                 [
-                    "s{}".format(vulId.__str__()),
+                    f"s{vulId.__str__()}",
                     allDetectorTable[vulId].NAME,
                     Risk[allDetectorTable[vulId].RISK]
                 ]
@@ -49,17 +51,17 @@ class Printer(object):
         print("\n")
 
     @staticmethod
-    def print_files(paths:list):
-        Printer.print_blue("{} solidity contract files were found".format(len(paths).__str__()))
+    def print_files(paths: list[str]) -> None:
+        Printer.print_blue(f"{len(paths).__str__()} solidity contract files were found")
         for path in paths:
             Printer.print_green(path)
         print("\n")
 
     @staticmethod
-    def print_summary(vulTable:VulTable):
+    def print_summary(vulTable: VulTable) -> None:
         countTable = vulTable.count_table()
         count = vulTable.vul_count()
-        Printer.print_blue("{} vuls were found".format(count.__str__()))
+        Printer.print_blue(f"{count.__str__()} vuls were found")
         for i in [3, 2, 1, 0]:
             Printer.print_risk_color("{} {}".format("-"*countTable[i], countTable[i].__str__()), i)
         print("\n")
@@ -71,7 +73,7 @@ class Printer(object):
                 continue
             showVulTable.add_row(
                 [
-                    "s{}".format(vulId.__str__()),
+                    f"s{vulId.__str__()}",
                     vulTable[vulId].name,
                     Risk[vulTable[vulId].risk],
                     vulTable[vulId].vul_count()
@@ -81,7 +83,7 @@ class Printer(object):
         print("\n")
 
     @staticmethod
-    def print_vul_table(vulTable: VulTable):
+    def print_vul_table(vulTable: VulTable) -> None:
         vulList = vulTable.sort_by_risk()
         for vul in vulList:
             if len(vul.vul_list) == 0:
@@ -90,25 +92,25 @@ class Printer(object):
                 text="s" + str(vul.id) + ":" + vul.name,
                 risk=vul.risk
             )
-            print("Descreibe: {}".format(vul.descreibe))
-            print("Advice: {}".format(vul.advice))
-            print("Detail: https://swcregistry.io/docs/SWC-{}\n".format(str(vul.id)))
+            print(f"Description: {vul.description}")
+            print(f"Advice: {vul.advice}")
+            print(f"Detail: https://swcregistry.io/docs/SWC-{str(vul.id)}\n")
             Printer._code_snippet(vul)
             print("\n")
 
     @staticmethod
-    def _code_snippet(vuls:Vuls):
+    def _code_snippet(vuls: Vuls) -> None:
         for vul in vuls.vul_list:
-            Printer.print_blue("\n{}\n".format(vul.fileName))
+            Printer.print_blue(f"\n{vul.fileName}\n")
             for loc in merge_loc_list(vul.locList):
-                with open(vul.fileName, "r", encoding="utf-8") as f:
+                with open(vul.fileName, encoding="utf-8") as f:
                     codeLines = [line.split("\n")[0] for line in f.readlines()]
                 start = loc["start"]["line"]
                 end = loc["end"]["line"]
                 if start == 1:
                     top = 0
                 else:
-                    top = start -2
+                    top = start - 2
                 if end > len(codeLines):
                     bottom = len(codeLines)
                 else:
@@ -116,16 +118,17 @@ class Printer(object):
                 for lineIndex, codeLine in enumerate(codeLines[top:bottom+1]):
                     line = top + lineIndex
                     if line == top or line == bottom:
-                        print("{}|".format(str(line+1)).rjust(7) + codeLine)
+                        print(f"{str(line+1)}|".rjust(7) + codeLine)
                     else:
-                        Printer.print_yellow(">{}|".format(str(line+1)).rjust(7) + codeLine)
+                        Printer.print_yellow(f">{str(line+1)}|".rjust(7) + codeLine)
                 print("\n")
 
     @staticmethod
-    def print_file_num(num:int):
+    def print_file_num(num: int) -> None:
         print("Contract files: " + Color.GREEN + str(num) + Color.END)
 
-    def print_risk_color(text:str, risk:int):
+    @staticmethod
+    def print_risk_color(text: str, risk: int) -> None:
         if risk == 0:
             print(text)
         elif risk == 1:
@@ -136,19 +139,19 @@ class Printer(object):
             Printer.print_red(text)
 
     @staticmethod
-    def print_green(text):
+    def print_green(text) -> None:
         print(Color.GREEN + str(text) + Color.END)
 
     @staticmethod
-    def print_red(text):
+    def print_red(text) -> None:
         print(Color.RED + str(text) + Color.END)
 
     @staticmethod
-    def print_blue(text):
+    def print_blue(text) -> None:
         print(Color.BLUE + str(text) + Color.END)
 
     @staticmethod
-    def print_yellow(text):
+    def print_yellow(text) -> None:
         print(Color.YELLOW + str(text) + Color.END)
 
 

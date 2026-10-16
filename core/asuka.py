@@ -5,33 +5,24 @@ from multiprocessing import Pool
 from ast_scanner.ast_scanner import Scanner
 from scraper.scraper import Scraper
 from solidity_antlr4_parser.parser import objectify, parse_file
-from vuls import all_detector
+from vuls.all_detector import ALL_DETECTORS, DETECTOR_IDS
 from vuls.vul import VulTable
 
 from .utils import check_address
 
-# load all detector
-allDetectorTable = dict()
-allDetectorList = list()
-for attrName in dir(all_detector):
-    if hasattr(getattr(all_detector, attrName), "check"):
-        detetor = getattr(all_detector, attrName)
-        allDetectorTable[detetor.ID] = detetor
-        allDetectorList.append(detetor.ID)
-allDetectorList.sort()
 
-class Asuka(object):
+class Asuka:
     """
         This is Asuka class which is core of detect vuls.
     """
 
-    def __init__(self, _root="", _detectors=allDetectorList, _threads=4, _chainType=None, _apiKey=None):
+    def __init__(self, _root="", _detectors=DETECTOR_IDS, _threads=4, _chainType=None, _apiKey=None):
         """ init Asuka Object
 
         Args:
             _root (str): path of all solidity files.
-            _detectors (_type_, optional): the detector you want to load.
-                Defaults to allDetectorList.
+            _detectors (list[int], optional): the detector ids you want to run.
+                Defaults to DETECTOR_IDS from vuls.all_detector.
             _threads (int, optional): threads of scanning files. Defaults to 4.
             _chainType (str): like ETH, BSC etc.
         """
@@ -58,7 +49,7 @@ class Asuka(object):
         if path[-4:] != ".sol":
             return False
         # check the file is empty
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             if len(f.readlines()) == 0:
                 return False
         return True
@@ -85,15 +76,15 @@ class Asuka(object):
             path = scraper.get_source_code(address=path)
 
         if not os.path.exists(path):
-            raise ValueError("Path not found: {}".format(path))
+            raise ValueError(f"Path not found: {path}")
 
         if path[-4:] == ".sol":
             if self._is_sol_file(path):
                 return [path]
-            raise ValueError("Invalid or empty solidity file: {}".format(path))
+            raise ValueError(f"Invalid or empty solidity file: {path}")
 
         if os.path.isfile(path):
-            raise ValueError("Not a solidity file: {}".format(path))
+            raise ValueError(f"Not a solidity file: {path}")
 
         if path[-1] != "/":
             path += "/"
@@ -134,9 +125,9 @@ class Asuka(object):
             sourceUnit = parse_file(path=solFilePath, loc=True, strict=True)
             sourceUnitObject = objectify(sourceUnit, file_name=solFilePath)
         except Exception as e:
-            logging.info("Parse file failed: {}".format(solFilePath))
+            logging.info(f"Parse file failed: {solFilePath}")
             logging.exception(e)
-            raise RuntimeError("Parse file failed: {}".format(solFilePath)) from e
+            raise RuntimeError(f"Parse file failed: {solFilePath}") from e
 
         try:
             """
@@ -145,24 +136,24 @@ class Asuka(object):
             """
             scanner = Scanner(sourceUnitObject)
         except Exception as e:
-            logging.info("Scan ast failed: {}".format(solFilePath))
+            logging.info(f"Scan ast failed: {solFilePath}")
             logging.exception(e)
-            raise RuntimeError("Scan ast failed: {}".format(solFilePath)) from e
+            raise RuntimeError(f"Scan ast failed: {solFilePath}") from e
 
         vulList = list()
         for vulId in detetors:
             """
-                Get all detectors by allDetectorTable.
+                Get all detectors by ALL_DETECTORS.
                 Using detectors to detect vuls.
             """
-            detector = allDetectorTable[vulId]
+            detector = ALL_DETECTORS[vulId]
             try:
                 vulList.append(detector.check(scanner))
             except Exception as e:
-                logging.info("Detector failed: {}".format(detector.NAME))
-                logging.info("Sol file: {}".format(solFilePath))
+                logging.info(f"Detector failed: {detector.NAME}")
+                logging.info(f"Sol file: {solFilePath}")
                 logging.exception(e)
-                raise RuntimeError("Detector failed: {}".format(detector.NAME)) from e
+                raise RuntimeError(f"Detector failed: {detector.NAME}") from e
         return vulList
 
 
@@ -181,7 +172,7 @@ class Asuka(object):
         try:
             return self.scan_file(param), None
         except Exception as e:
-            return None, "{}: {}".format(param[0], e)
+            return None, f"{param[0]}: {e}"
 
     def scan(self):
         """

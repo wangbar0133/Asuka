@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 # mod by https://github.com/ConsenSys/python-solidity-parser
 # derived from https://github.com/federicobond/solidity-parser-antlr/
@@ -1539,7 +1538,7 @@ def objectify(start_node, file_name=None):
     """
 
 
-    class ObjectifyContractVisitor(object):
+    class ObjectifyContractVisitor:
 
         def __init__(self, node):
             self.node = node
@@ -1568,7 +1567,7 @@ def objectify(start_node, file_name=None):
             self.names[_node.name]=_node
 
         def visitConstructorDefinition(self, _node):
-            class ConstructorObject(object):
+            class ConstructorObject:
 
                 def __init__(self, node):
                     self.node = node
@@ -1581,7 +1580,7 @@ def objectify(start_node, file_name=None):
                     self.identifiers = {}
                     self.assemblys = {}
 
-            class ConstructorArgumentVisitor(object):
+            class ConstructorArgumentVisitor:
 
                 def __init__(self):
                     self.parameters = {}
@@ -1589,7 +1588,7 @@ def objectify(start_node, file_name=None):
                 def visitParameter(self, __node):
                     self.parameters[__node.name] = __node
 
-            class VarDecVisitor(object):
+            class VarDecVisitor:
 
                 def __init__(self):
                     self.variable_declarations = {}
@@ -1597,7 +1596,7 @@ def objectify(start_node, file_name=None):
                 def visitVariableDeclaration(self, __node):
                     self.variable_declarations[__node.name] = __node
 
-            class IdentifierDecVisitor(object):
+            class IdentifierDecVisitor:
 
                 def __init__(self):
                     self.idents = {}
@@ -1628,7 +1627,7 @@ def objectify(start_node, file_name=None):
 
         def visitStateVariableDeclaration(self, _node):
 
-            class VarDecVisitor(object):
+            class VarDecVisitor:
 
                 def __init__(self, current_contract):
                     self._current_contract = current_contract
@@ -1641,7 +1640,7 @@ def objectify(start_node, file_name=None):
 
         def visitEventDefinition(self, _node):
 
-            class EventFunctionVisitor(object):
+            class EventFunctionVisitor:
                 def __init__(self, node):
                     self.arguments = {}
                     self.declarations = {}
@@ -1659,7 +1658,7 @@ def objectify(start_node, file_name=None):
 
         def visitFunctionDefinition(self, _node, _definition_type=None):
 
-            class FunctionObject(object):
+            class FunctionObject:
 
                 def __init__(self, node):
                     self.node = node
@@ -1675,7 +1674,7 @@ def objectify(start_node, file_name=None):
                     self.identifiers = {}
                     self.assemblys = {}
 
-            class FunctionArgumentVisitor(object):
+            class FunctionArgumentVisitor:
 
                 def __init__(self):
                     self.parameters = {}
@@ -1683,7 +1682,7 @@ def objectify(start_node, file_name=None):
                 def visitParameter(self, __node):
                     self.parameters[__node.name] = __node
 
-            class VarDecVisitor(object):
+            class VarDecVisitor:
 
                 def __init__(self):
                     self.variable_declarations = {}
@@ -1691,7 +1690,7 @@ def objectify(start_node, file_name=None):
                 def visitVariableDeclaration(self, __node):
                     self.variable_declarations[__node.name] = __node
 
-            class IdentifierDecVisitor(object):
+            class IdentifierDecVisitor:
 
                 def __init__(self):
                     self.idents = {}
@@ -1703,7 +1702,7 @@ def objectify(start_node, file_name=None):
                 def visitAssemblyCall(self, __node):
                     self.assemblycalls[__node.name] = __node
 
-            class InLineAssemblyStatementVisitor(object):
+            class InLineAssemblyStatementVisitor:
 
                 def __init__(self):
                     self.assemStatements = []
@@ -1753,7 +1752,7 @@ def objectify(start_node, file_name=None):
             return self.visitFunctionDefinition(_node, "ModifierDefinition")
 
 
-    class ObjectifySourceUnitVisitor(object):
+    class ObjectifySourceUnitVisitor:
 
         TRUST_CONTRACTS = ["SafeMath"]
 
@@ -1787,7 +1786,7 @@ def objectify(start_node, file_name=None):
 
 
 def parse_file(path, start="sourceUnit", loc=False, strict=False):
-    with open(path, 'r', encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return parse(f.read(), start=start, loc=loc, strict=strict, path=path)
 
 
@@ -1833,9 +1832,7 @@ def parse(text, start="sourceUnit", loc=False, strict=False, path=None):
     if strict and (lexer_errors.count or parser_errors.count):
         name = path if path else "<text>"
         raise SyntaxError(
-            "{} syntax error(s) in {}".format(
-                lexer_errors.count + parser_errors.count, name
-            )
+            f"{lexer_errors.count + parser_errors.count} syntax error(s) in {name}"
         )
 
     return tree

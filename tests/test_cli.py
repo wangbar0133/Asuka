@@ -26,7 +26,7 @@ class TestParseVulsString:
         with pytest.raises(SystemExit) as exc_info:
             parse_vuls_string("100,asdf,999")
         assert exc_info.value.code == 1
-        assert "Unkonw detectors" in capsys.readouterr().out
+        assert "Unknown detectors" in capsys.readouterr().out
 
 
 def _run_cli(*args, timeout=120):
@@ -42,7 +42,7 @@ def _run_cli(*args, timeout=120):
 def test_cli_version():
     result = _run_cli("--version")
     assert result.returncode == 0
-    assert "0.2.1" in result.stdout
+    assert "0.3.0" in result.stdout
 
 
 def test_cli_scan_single_file():
@@ -77,7 +77,7 @@ def test_cli_list_detectors():
     assert result.returncode == 0
     assert "Find 9 detectors" in result.stdout
     for vul_id in (100, 101, 104, 107, 109, 112, 115, 137, 138):
-        assert "s{}".format(vul_id) in result.stdout
+        assert f"s{vul_id}" in result.stdout
 
 
 def test_cli_exclude_detector():
@@ -97,7 +97,7 @@ def test_cli_thread_count():
 def test_cli_unknown_detector_exits():
     result = _run_cli("test_data/reentrancy.sol", "-i", "999")
     assert result.returncode == 1
-    assert "Unkonw detectors" in result.stdout
+    assert "Unknown detectors" in result.stdout
 
 
 def test_cli_address_without_apikey_exits():

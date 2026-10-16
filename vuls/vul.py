@@ -1,9 +1,14 @@
-class Vuls(object):
+"""Finding data model: Vul (single finding), Vuls (per-detector results),
+VulTable (per-scan aggregation keyed by SWC id)."""
 
-    def __init__(self, name:str, id:int, descreibe:str, advice:str, risk:int, vulList:list):
+
+class Vuls:
+
+    def __init__(self, name: str, id: int, description: str, advice: str,
+                 risk: int, vulList: list):
         self.name = name
         self.id = id
-        self.descreibe = descreibe
+        self.description = description
         self.advice = advice
         self.vul_list = vulList
         self.risk = risk
@@ -11,7 +16,7 @@ class Vuls(object):
     def vul_count(self) -> int:
         return len(self.vul_list)
 
-    def __add__(self, _vuls):
+    def __add__(self, _vuls: "Vuls") -> "Vuls":
         "merge all same type vul from different files"
         if not hasattr(_vuls, "id"):
             raise ValueError("There is no name attr!")
@@ -22,27 +27,27 @@ class Vuls(object):
         return self
 
 
-class Vul(object):
+class Vul:
 
-    def __init__(self, fileName:str, locList:list):
+    def __init__(self, fileName: str, locList: list[dict]):
         self.fileName = fileName
         self.locList = locList
 
 
 class VulTable(dict):
 
-    def __init__(self, _detectors):
+    def __init__(self, _detectors: list[int]):
         for detector in _detectors:
             self[detector] = None
 
-    def __add__(self, _vuls:Vuls):
+    def __add__(self, _vuls: Vuls) -> "VulTable":
         if not self[_vuls.id]:
             self[_vuls.id] = _vuls
         else:
             self[_vuls.id] += _vuls
         return self
 
-    def count_table(self) -> dict:
+    def count_table(self) -> dict[int, int]:
         countTable = {3: 0, 2: 0, 1: 0, 0: 0}
         for vuls in self.values():
             # entries stay None when no file ever ran that detector
@@ -60,15 +65,15 @@ class VulTable(dict):
             count += vuls.vul_count()
         return count
 
-    def sort_by_risk(self) -> list:
+    def sort_by_risk(self) -> list[Vuls]:
         vulList = sorted(
-                [
-                    vul for vul in self.values()
-                    if vul is not None
-                ],
-                key=lambda x : x.risk,
-                reverse=True
-            )
+            [
+                vul for vul in self.values()
+                if vul is not None
+            ],
+            key=lambda x: x.risk,
+            reverse=True
+        )
         return vulList
 
 
@@ -80,9 +85,9 @@ class Color:
     END = "\033[0m"
 
 
-Risk = {
-    0:"Info",
-    1:Color.BLUE + "Low" + Color.END,
-    2:Color.YELLOW + "Medium" + Color.END,
-    3:Color.RED + "High" + Color.END
+Risk: dict[int, str] = {
+    0: "Info",
+    1: Color.BLUE + "Low" + Color.END,
+    2: Color.YELLOW + "Medium" + Color.END,
+    3: Color.RED + "High" + Color.END,
 }
